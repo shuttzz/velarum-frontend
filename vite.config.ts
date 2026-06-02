@@ -10,6 +10,9 @@ export default defineConfig({
   server: {
     host: true, // 0.0.0.0 — permite acessar de fora do container
     port: 5173,
+    // HMR funciona dentro do Docker; usePolling garante que o watcher detecte
+    // edições feitas no host (eventos de FS nem sempre propagam pelo volume no Mac/Windows).
+    watch: { usePolling: true },
     proxy: {
       '/api': {
         target: backend,
