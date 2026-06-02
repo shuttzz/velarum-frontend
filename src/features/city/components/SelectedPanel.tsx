@@ -2,31 +2,50 @@ import { type CSSProperties } from 'react'
 import type { City } from '../../../types/game'
 import { useGameUIStore } from '../../../stores/useGameUIStore'
 import { useCityActions } from '../../../queries/useGameMutations'
+import { useCatalog } from '../../../queries/useCatalog'
+import { buildSecondsForLevel, buildingName, canAfford, costForLevel, formatDuration } from '../catalog'
 
-const NAMES: Record<string, string> = {
-  lar_do_cla: 'Lar do Clã',
-  viveiro_de_pedra: 'Viveiro de Pedra',
-  fogueira_comunal: 'Fogueira Comunal',
-  pedra_da_memoria: 'Pedra da Memória',
-  celeiro_de_argila: 'Celeiro de Argila',
-  canteiro_de_almas: 'Canteiro de Almas',
-}
-
-// Painel do edifício selecionado (HUD, lateral direita): upgrade e dica de mover.
+// Painel do edifício selecionado (HUD, lateral direita): upgrade (com custo/tempo) e dica de mover.
 export function SelectedPanel({ city }: { city: City }) {
   const selectedId = useGameUIStore((s) => s.selectedBuildingId)
   const selectBuilding = useGameUIStore((s) => s.selectBuilding)
   const { upgrade } = useCityActions(city.id)
+  const { data: catalog } = useCatalog()
 
   const b = city.buildings.find((x) => x.id === selectedId)
   if (!b) return null
 
+  const def = catalog?.buildings.find((d) => d.key === b.type)
+  const name = catalog ? buildingName(catalog, b.type) : b.type
+
+  const nextLevel = b.level + 1
+  const upCost = def && catalog ? costForLevel(def.base_cost, catalog.growth.cost, nextLevel) : null
+  const upTime = def && catalog ? buildSecondsForLevel(def.base_time, catalog.growth.build_time, nextLevel) : null
+  const affordable = upCost ? canAfford(city.resources, upCost) : true
+
   return (
     <div style={panel}>
-      <div style={{ fontWeight: 600 }}>{NAMES[b.type] ?? b.type}</div>
+      <div style={{ fontWeight: 600 }}>{name}</div>
       <div style={{ color: '#9aa3b2', fontSize: 13 }}>
         nível {b.level} · posição ({b.x},{b.y})
       </div>
+
+      {upCost && upTime != null && (
+        <div style={{ fontSize: 12, marginTop: 8 }}>
+          <div style={{ color: '#9aa3b2' }}>Upgrade → nível {nextLevel}</div>
+          <div style={{ color: affordable ? '#cfd6e4' : '#e0884a' }}>
+            {[
+              upCost.matter && `${upCost.matter} mat`,
+              upCost.energy && `${upCost.energy} ene`,
+              upCost.knowledge && `${upCost.knowledge} con`,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </div>
+          <div style={{ color: '#9aa3b2' }}>⏱ {formatDuration(upTime)}</div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
         <button onClick={() => upgrade.mutate(b.id)} disabled={upgrade.isPending} style={btn}>
           ⬆ upgrade

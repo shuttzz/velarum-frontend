@@ -43,3 +43,25 @@ export type BuildQueued = {
   y: number
   finish_at: string
 }
+
+export type Requirement = { building_key: string; level: number }
+
+export type CatalogBuilding = {
+  key: string
+  name: string
+  category: string
+  produces: string
+  base_rate: number
+  base_cost: Amounts
+  base_time: number
+  max_copies: number
+  era: number
+  w: number
+  h: number
+  requires: Requirement[]
+}
+
+export type Catalog = {
+  growth: { production: number; cost: number; build_time: number }
+  buildings: CatalogBuilding[]
+}

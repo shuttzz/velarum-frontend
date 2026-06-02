@@ -19,7 +19,7 @@ export function CityView({ cityId }: { cityId: string }) {
       <GameCanvas cityId={cityId} renderer={renderer} />
       <HUDLayer>
         {city && <ResourceBar city={city} />}
-        <BuildPalette />
+        {city && <BuildPalette city={city} />}
         {city && <SelectedPanel city={city} />}
       </HUDLayer>
     </GameLayout>
