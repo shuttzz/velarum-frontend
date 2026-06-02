@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Velarum",
+    "tagline": "Funde sua civilização e veja a cidade crescer."
+  },
+  "common": {
+    "cancel": "cancelar",
+    "clear": "limpar",
+    "loading": "Carregando…",
+    "language": "Idioma"
+  },
+  "auth": {
+    "loginTitle": "Entrar",
+    "registerTitle": "Criar conta",
+    "username": "Nome de usuário",
+    "email": "Email",
+    "password": "Senha",
+    "login": "Entrar",
+    "register": "Criar conta",
+    "submitting": "Enviando…",
+    "toRegister": "Não tem conta? Criar uma",
+    "toLogin": "Já tem conta? Entrar",
+    "logout": "Sair",
+    "play": "Jogar",
+    "playing": "Entrando…",
+    "welcome": "Olá, {{name}}"
+  },
+  "hud": {
+    "era": "Era {{n}}"
+  },
+  "resources": {
+    "matter": "Matéria",
+    "energy": "Energia",
+    "knowledge": "Conhecimento"
+  },
+  "resourceShort": {
+    "matter": "mat",
+    "energy": "ene",
+    "knowledge": "con"
+  },
+  "build": {
+    "title": "Construir",
+    "placingHint": "Clique numa célula vazia…",
+    "locked": "🔒 requer {{reqs}}",
+    "req": "{{name}} nv{{level}}",
+    "maxReached": "máx. {{max}}"
+  },
+  "selected": {
+    "levelPos": "nível {{level}} · posição ({{x}},{{y}})",
+    "upgradeTo": "Upgrade → nível {{level}}",
+    "upgrade": "⬆ upgrade",
+    "moveHint": "Para mover: clique numa célula vazia."
+  },
+  "buildings": {
+    "lar_do_cla": "Lar do Clã",
+    "viveiro_de_pedra": "Viveiro de Pedra",
+    "fogueira_comunal": "Fogueira Comunal",
+    "pedra_da_memoria": "Pedra da Memória",
+    "celeiro_de_argila": "Celeiro de Argila",
+    "canteiro_de_almas": "Canteiro de Almas",
+    "altar_das_fogueiras": "Altar das Fogueiras",
+    "torre_do_vigia": "Torre do Vigia",
+    "circulo_runico": "Círculo Rúnico",
+    "praca_do_conselho": "Praça do Conselho",
+    "pira_dos_guerreiros": "Pira dos Guerreiros",
+    "marco_primeiros_fogos": "Marco dos Primeiros Fogos"
+  },
+  "errors": {
+    "invalid_input": "Dados inválidos.",
+    "weak_password": "Senha muito curta (mínimo 8 caracteres).",
+    "email_taken": "Email já cadastrado.",
+    "username_taken": "Nome de usuário já em uso.",
+    "invalid_credentials": "Email ou senha inválidos.",
+    "unauthenticated": "Sessão expirada. Entre novamente.",
+    "building_unknown": "Edifício desconhecido.",
+    "building_not_found": "Edifício não encontrado.",
+    "insufficient": "Recursos insuficientes.",
+    "prereq_not_met": "Pré-requisito não atendido.",
+    "max_copies": "Limite de cópias atingido.",
+    "bad_placement": "Posição inválida.",
+    "building_busy": "Edifício ocupado por uma obra.",
+    "city_not_found": "Cidade não encontrada.",
+    "forbidden_not_owner": "Esta cidade não pertence à sua conta.",
+    "bad_request": "Requisição inválida.",
+    "internal": "Algo deu errado. Tente novamente.",
+    "network": "Falha de conexão. Verifique sua internet."
+  }
+}

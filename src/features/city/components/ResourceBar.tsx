@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import type { City } from '../../../types/game'
 import { useResourceTicker } from '../hooks/useResourceTicker'
 import { formatAmount } from '../../../lib/format'
 
 // Barra de recursos no topo (HUD). Contadores sobem em tempo real (extrapolação client-side).
 export function ResourceBar({ city }: { city: City }) {
+  const { t } = useTranslation()
   const res = useResourceTicker(city) ?? city.resources
   return (
     <div
@@ -22,11 +24,11 @@ export function ResourceBar({ city }: { city: City }) {
       }}
     >
       <strong style={{ alignSelf: 'center' }}>
-        {city.name} · Era {city.era}
+        {city.name} · {t('hud.era', { n: city.era })}
       </strong>
-      <Item label="Matéria" v={res.matter} cap={city.capacity.matter} rate={city.rate.matter} />
-      <Item label="Energia" v={res.energy} cap={city.capacity.energy} rate={city.rate.energy} />
-      <Item label="Conhecimento" v={res.knowledge} cap={city.capacity.knowledge} rate={city.rate.knowledge} />
+      <Item label={t('resources.matter')} v={res.matter} cap={city.capacity.matter} rate={city.rate.matter} />
+      <Item label={t('resources.energy')} v={res.energy} cap={city.capacity.energy} rate={city.rate.energy} />
+      <Item label={t('resources.knowledge')} v={res.knowledge} cap={city.capacity.knowledge} rate={city.rate.knowledge} />
     </div>
   )
 }

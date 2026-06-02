@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Velarum",
+    "tagline": "Forge your civilization and watch the city grow."
+  },
+  "common": {
+    "cancel": "cancel",
+    "clear": "clear",
+    "loading": "Loading…",
+    "language": "Language"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "registerTitle": "Create account",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "login": "Sign in",
+    "register": "Create account",
+    "submitting": "Submitting…",
+    "toRegister": "No account? Create one",
+    "toLogin": "Already have an account? Sign in",
+    "logout": "Sign out",
+    "play": "Play",
+    "playing": "Entering…",
+    "welcome": "Hi, {{name}}"
+  },
+  "hud": {
+    "era": "Era {{n}}"
+  },
+  "resources": {
+    "matter": "Matter",
+    "energy": "Energy",
+    "knowledge": "Knowledge"
+  },
+  "resourceShort": {
+    "matter": "mat",
+    "energy": "ene",
+    "knowledge": "kno"
+  },
+  "build": {
+    "title": "Build",
+    "placingHint": "Click an empty cell…",
+    "locked": "🔒 requires {{reqs}}",
+    "req": "{{name}} lv{{level}}",
+    "maxReached": "max. {{max}}"
+  },
+  "selected": {
+    "levelPos": "level {{level}} · position ({{x}},{{y}})",
+    "upgradeTo": "Upgrade → level {{level}}",
+    "upgrade": "⬆ upgrade",
+    "moveHint": "To move: click an empty cell."
+  },
+  "buildings": {
+    "lar_do_cla": "Clan Hearth",
+    "viveiro_de_pedra": "Stone Nursery",
+    "fogueira_comunal": "Communal Bonfire",
+    "pedra_da_memoria": "Memory Stone",
+    "celeiro_de_argila": "Clay Granary",
+    "canteiro_de_almas": "Soul Cradle",
+    "altar_das_fogueiras": "Altar of Fires",
+    "torre_do_vigia": "Watchtower",
+    "circulo_runico": "Runic Circle",
+    "praca_do_conselho": "Council Square",
+    "pira_dos_guerreiros": "Warriors' Pyre",
+    "marco_primeiros_fogos": "Monument of First Fires"
+  },
+  "errors": {
+    "invalid_input": "Invalid data.",
+    "weak_password": "Password too short (minimum 8 characters).",
+    "email_taken": "Email already registered.",
+    "username_taken": "Username already in use.",
+    "invalid_credentials": "Invalid email or password.",
+    "unauthenticated": "Session expired. Please sign in again.",
+    "building_unknown": "Unknown building.",
+    "building_not_found": "Building not found.",
+    "insufficient": "Insufficient resources.",
+    "prereq_not_met": "Prerequisite not met.",
+    "max_copies": "Copy limit reached.",
+    "bad_placement": "Invalid position.",
+    "building_busy": "Building is busy with construction.",
+    "city_not_found": "City not found.",
+    "forbidden_not_owner": "This city does not belong to your account.",
+    "bad_request": "Invalid request.",
+    "internal": "Something went wrong. Please try again.",
+    "network": "Connection failed. Check your internet."
+  }
+}

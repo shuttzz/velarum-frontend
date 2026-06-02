@@ -1,13 +1,15 @@
 import { type CSSProperties } from 'react'
-import type { Amounts, Catalog, CatalogBuilding, City } from '../../../types/game'
+import { useTranslation } from 'react-i18next'
+import type { Amounts, CatalogBuilding, City } from '../../../types/game'
 import { useGameUIStore } from '../../../stores/useGameUIStore'
 import { useCatalog } from '../../../queries/useCatalog'
-import { buildingName, canAfford, copiesUsed, formatDuration, prereqsMet } from '../catalog'
+import { canAfford, copiesUsed, formatDuration, prereqsMet } from '../catalog'
 
 // Paleta de construção (HUD, lateral esquerda). Lista TODOS os edifícios da era a partir
 // do catálogo do servidor; mostra custo/tempo e trava os que ainda não cumprem pré-requisito.
-// Selecionar um disponível entra em modo "placing": o próximo clique numa célula constrói ali.
+// Os textos (nomes, rótulos) são traduzidos pelo i18n a partir da `key` do edifício.
 export function BuildPalette({ city }: { city: City }) {
+  const { t } = useTranslation()
   const buildMode = useGameUIStore((s) => s.buildMode)
   const startPlacing = useGameUIStore((s) => s.startPlacing)
   const cancel = useGameUIStore((s) => s.cancel)
@@ -17,14 +19,13 @@ export function BuildPalette({ city }: { city: City }) {
 
   return (
     <div style={panel}>
-      <h3 style={{ margin: '0 0 8px' }}>Construir</h3>
+      <h3 style={{ margin: '0 0 8px' }}>{t('build.title')}</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {catalog.buildings.map((b) => (
           <BuildOption
             key={b.key}
             b={b}
             city={city}
-            catalog={catalog}
             active={buildMode.type === 'placing' && buildMode.buildingType === b.key}
             onPick={() => startPlacing(b.key)}
           />
@@ -32,9 +33,9 @@ export function BuildPalette({ city }: { city: City }) {
       </div>
       {buildMode.type === 'placing' && (
         <p style={{ fontSize: 12, color: '#9aa3b2', marginTop: 8 }}>
-          Clique numa célula vazia…{' '}
+          {t('build.placingHint')}{' '}
           <button onClick={cancel} style={cancelBtn}>
-            cancelar
+            {t('common.cancel')}
           </button>
         </p>
       )}
@@ -45,25 +46,28 @@ export function BuildPalette({ city }: { city: City }) {
 function BuildOption({
   b,
   city,
-  catalog,
   active,
   onPick,
 }: {
   b: CatalogBuilding
   city: City
-  catalog: Catalog
   active: boolean
   onPick: () => void
 }) {
+  const { t } = useTranslation()
   const unlocked = prereqsMet(city, b)
   const maxed = copiesUsed(city, b.key) >= b.max_copies
   const affordable = canAfford(city.resources, b.base_cost)
   const disabled = !unlocked || maxed
 
   const note = !unlocked
-    ? '🔒 requer ' + b.requires.map((r) => `${buildingName(catalog, r.building_key)} nv${r.level}`).join(', ')
+    ? t('build.locked', {
+        reqs: b.requires
+          .map((r) => t('build.req', { name: t(`buildings.${r.building_key}`), level: r.level }))
+          .join(', '),
+      })
     : maxed
-      ? `máx. ${b.max_copies}`
+      ? t('build.maxReached', { max: b.max_copies })
       : null
 
   return (
@@ -80,7 +84,7 @@ function BuildOption({
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-        <span>{b.name}</span>
+        <span>{t(`buildings.${b.key}`)}</span>
         <span style={{ fontSize: 11, color: '#9aa3b2' }}>⏱ {formatDuration(b.base_time)}</span>
       </div>
       {!disabled && (
@@ -95,10 +99,11 @@ function BuildOption({
 
 // Linha de custo: só mostra os recursos com valor > 0.
 function CostLine({ amounts }: { amounts: Amounts }) {
+  const { t } = useTranslation()
   const parts: string[] = []
-  if (amounts.matter) parts.push(`${amounts.matter} mat`)
-  if (amounts.energy) parts.push(`${amounts.energy} ene`)
-  if (amounts.knowledge) parts.push(`${amounts.knowledge} con`)
+  if (amounts.matter) parts.push(`${amounts.matter} ${t('resourceShort.matter')}`)
+  if (amounts.energy) parts.push(`${amounts.energy} ${t('resourceShort.energy')}`)
+  if (amounts.knowledge) parts.push(`${amounts.knowledge} ${t('resourceShort.knowledge')}`)
   return <>{parts.join(' · ')}</>
 }
 
