@@ -95,6 +95,23 @@ export function App() {
     }
   }
 
+  async function upgrade(slot: number) {
+    if (!city) return
+    setBusy(true)
+    try {
+      const r = await fetch(`/api/cities/${city.id}/buildings/${slot}/upgrade`, { method: 'POST' })
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}))
+        throw new Error(body.error ?? `HTTP ${r.status}`)
+      }
+      await refresh(city.id)
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   // Polling: sincroniza com o servidor a cada 3s (pega conclusão de construção / nova produção).
   useEffect(() => {
     if (!city) return
@@ -131,8 +148,12 @@ export function App() {
           <h3>Edifícios</h3>
           <ul>
             {city.buildings.map((b) => (
-              <li key={b.slot}>
-                {BUILDING_NAMES[b.type] ?? b.type} — nível {b.level} <small style={{ color: '#888' }}>(slot {b.slot})</small>
+              <li key={b.slot} style={{ marginBottom: 4 }}>
+                {BUILDING_NAMES[b.type] ?? b.type} — nível {b.level}{' '}
+                <small style={{ color: '#888' }}>(slot {b.slot})</small>{' '}
+                <button onClick={() => upgrade(b.slot)} disabled={busy} style={smallBtn}>
+                  ⬆ upgrade
+                </button>
               </li>
             ))}
           </ul>
@@ -167,4 +188,13 @@ const btn: CSSProperties = {
   border: '1px solid #ccc',
   cursor: 'pointer',
   background: '#f7f7f7',
+}
+
+const smallBtn: CSSProperties = {
+  padding: '2px 8px',
+  fontSize: 12,
+  borderRadius: 6,
+  border: '1px solid #ccc',
+  cursor: 'pointer',
+  background: '#f0f0f0',
 }
