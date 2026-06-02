@@ -1,10 +1,10 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, type CSSProperties, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CityView } from './features/city/CityView'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { AccountControls } from './components/AccountControls'
-import { useCreateGame } from './queries/useGameMutations'
+import { useEnterWorld } from './queries/useEnterWorld'
 import { useMe } from './queries/useAuth'
 import { errorMessage } from './api/client'
 import { queryKeys } from './queries/keys'
@@ -24,48 +24,49 @@ function Root() {
   const { t } = useTranslation()
   const me = useMe()
 
-  if (me.isLoading) {
-    return (
-      <div style={center}>
-        <p style={{ color: '#9aa3b2', fontFamily: 'system-ui, sans-serif' }}>{t('common.loading')}</p>
-      </div>
-    )
-  }
+  if (me.isLoading) return <Centered>{t('common.loading')}</Centered>
   if (!me.data) return <AuthScreen />
-  return <Authed account={me.data} />
+  return <Game account={me.data} />
 }
 
-// Logado: lobby com "Jogar" (entra no mundo) → CityView. EnterWorld é idempotente no backend.
-function Authed({ account }: { account: Account }) {
+// Logado: entra AUTOMATICAMENTE no mundo e vai direto para a CityView. Assim o refresh não
+// joga o usuário num lobby — ele volta direto para a sua cidade (mesma conta → mesma cidade).
+function Game({ account }: { account: Account }) {
   const { t } = useTranslation()
   const qc = useQueryClient()
-  const [cityId, setCityId] = useState<string | null>(null)
-  const enter = useCreateGame()
+  const enter = useEnterWorld()
 
-  function play() {
-    enter.mutate(undefined, {
-      onSuccess: (city) => {
-        qc.setQueryData(queryKeys.city(city.id), city)
-        setCityId(city.id)
-      },
-    })
+  // Semeia o cache da cidade com o que a entrada já trouxe (evita um GET extra/flash).
+  useEffect(() => {
+    if (enter.data) qc.setQueryData(queryKeys.city(enter.data.id), enter.data)
+  }, [enter.data, qc])
+
+  if (enter.data) return <CityView cityId={enter.data.id} />
+
+  // Falha ao entrar: nova tentativa + controles de conta (sair/idioma).
+  if (enter.isError) {
+    return (
+      <Centered>
+        <div style={{ position: 'absolute', top: 16, right: 16 }}>
+          <AccountControls account={account} />
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: '#e0884a' }}>{errorMessage(enter.error)}</p>
+          <button onClick={() => void enter.refetch()} disabled={enter.isFetching} style={bigBtn}>
+            {enter.isFetching ? t('auth.playing') : t('auth.play')}
+          </button>
+        </div>
+      </Centered>
+    )
   }
 
-  if (cityId) return <CityView cityId={cityId} />
+  return <Centered>{t('auth.playing')}</Centered>
+}
 
+function Centered({ children }: { children: ReactNode }) {
   return (
     <div style={center}>
-      <div style={{ position: 'absolute', top: 16, right: 16 }}>
-        <AccountControls account={account} />
-      </div>
-      <div style={{ textAlign: 'center', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
-        <h1>{t('app.title')}</h1>
-        <p style={{ color: '#9aa3b2' }}>{t('app.tagline')}</p>
-        <button onClick={play} disabled={enter.isPending} style={bigBtn}>
-          {enter.isPending ? t('auth.playing') : t('auth.play')}
-        </button>
-        {enter.isError && <p style={{ color: '#e0884a' }}>{errorMessage(enter.error)}</p>}
-      </div>
+      <div style={{ color: '#9aa3b2', fontFamily: 'system-ui, sans-serif', textAlign: 'center' }}>{children}</div>
     </div>
   )
 }
