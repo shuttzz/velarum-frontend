@@ -32,6 +32,7 @@ export class Canvas2DRenderer implements IRenderer {
   private offX = 0
   private offY = 0
   private state: RenderState | null = null
+  private hover: { x: number; y: number } | null = null
   private cellHandlers = new Set<RendererEvents['cellClick']>()
   private buildingHandlers = new Set<RendererEvents['buildingClick']>()
 
@@ -39,10 +40,14 @@ export class Canvas2DRenderer implements IRenderer {
     this.canvas = canvas
     this.ctx = canvas.getContext('2d')
     canvas.addEventListener('click', this.onClick)
+    canvas.addEventListener('mousemove', this.onMove)
+    canvas.addEventListener('mouseleave', this.onLeave)
   }
 
   unmount(): void {
     this.canvas?.removeEventListener('click', this.onClick)
+    this.canvas?.removeEventListener('mousemove', this.onMove)
+    this.canvas?.removeEventListener('mouseleave', this.onLeave)
     this.canvas = null
     this.ctx = null
   }
@@ -86,6 +91,36 @@ export class Canvas2DRenderer implements IRenderer {
     const hit = st.city.buildings.find((b) => gx >= b.x && gx < b.x + b.w && gy >= b.y && gy < b.y + b.h)
     if (hit) this.buildingHandlers.forEach((fn) => fn(hit.id))
     else this.cellHandlers.forEach((fn) => fn(gx, gy))
+  }
+
+  private onMove = (e: MouseEvent) => {
+    const st = this.state
+    const canvas = this.canvas
+    if (!st || !canvas) return
+    const interactive = st.buildMode.type === 'placing' || st.selectedBuildingId !== null
+    if (!interactive) {
+      if (this.hover) {
+        this.hover = null
+        this.draw()
+      }
+      return
+    }
+    const rect = canvas.getBoundingClientRect()
+    const gx = Math.floor((e.clientX - rect.left - this.offX) / this.cell)
+    const gy = Math.floor((e.clientY - rect.top - this.offY) / this.cell)
+    const inside = gx >= 0 && gy >= 0 && gx < st.city.grid_w && gy < st.city.grid_h
+    const next = inside ? { x: gx, y: gy } : null
+    if ((next?.x ?? -1) !== (this.hover?.x ?? -1) || (next?.y ?? -1) !== (this.hover?.y ?? -1)) {
+      this.hover = next
+      this.draw()
+    }
+  }
+
+  private onLeave = () => {
+    if (this.hover) {
+      this.hover = null
+      this.draw()
+    }
   }
 
   private draw() {
@@ -147,6 +182,22 @@ export class Canvas2DRenderer implements IRenderer {
       ctx.textBaseline = 'top'
       ctx.fillText(SHORT[b.type] ?? b.type, x + pad + 4, y + pad + 4)
       ctx.fillText('N' + b.level, x + pad + 4, y + pad + 6 + font)
+    }
+
+    // Fantasma de posicionamento: segue o mouse ao construir ou mover (verde=válido, vermelho=ocupado).
+    const interactive = st.buildMode.type === 'placing' || st.selectedBuildingId !== null
+    if (interactive && this.hover) {
+      const hx = this.hover.x
+      const hy = this.hover.y
+      const occupied = buildings.some(
+        (b) => hx >= b.x && hx < b.x + b.w && hy >= b.y && hy < b.y + b.h && b.id !== st.selectedBuildingId,
+      )
+      ctx.fillStyle = occupied ? 'rgba(220,80,80,0.30)' : 'rgba(90,209,122,0.30)'
+      ctx.strokeStyle = occupied ? '#dc5050' : '#5ad17a'
+      ctx.lineWidth = 2
+      roundRect(ctx, hx * cell + 2, hy * cell + 2, cell - 4, cell - 4, 6)
+      ctx.fill()
+      ctx.stroke()
     }
 
     ctx.restore()

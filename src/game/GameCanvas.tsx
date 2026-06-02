@@ -53,5 +53,11 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
     }
   }, [renderer])
 
-  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
+  const interactive = buildMode.type === 'placing' || selectedBuildingId !== null
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', cursor: interactive ? 'crosshair' : 'default' }}
+    />
+  )
 }
