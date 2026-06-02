@@ -1,7 +1,5 @@
 import type { IRenderer, RenderState, RendererEvents } from './IRenderer'
 
-const CELL = 48
-
 // Cores placeholder por tipo de edifício (no lugar de sprites). Trocar por imagens/Pixi depois.
 const TYPE_COLOR: Record<string, string> = {
   lar_do_cla: '#cba14b',
@@ -20,12 +18,17 @@ const SHORT: Record<string, string> = {
   canteiro_de_almas: 'Quartel',
 }
 
-// Renderer da cidade em Canvas 2D. A grade é centralizada na viewport (canvas fullscreen).
+const MARGIN = 48 // espaço entre a grade e as bordas da tela
+const MIN_CELL = 20
+
+// Renderer da cidade em Canvas 2D. O canvas é fullscreen; a grade ESCALA para preencher
+// a viewport (tamanho de célula dinâmico), centralizada.
 export class Canvas2DRenderer implements IRenderer {
   private canvas: HTMLCanvasElement | null = null
   private ctx: CanvasRenderingContext2D | null = null
   private w = 0
   private h = 0
+  private cell = 48
   private offX = 0
   private offY = 0
   private state: RenderState | null = null
@@ -77,8 +80,8 @@ export class Canvas2DRenderer implements IRenderer {
     const px = e.clientX - rect.left - this.offX
     const py = e.clientY - rect.top - this.offY
     if (px < 0 || py < 0) return
-    const gx = Math.floor(px / CELL)
-    const gy = Math.floor(py / CELL)
+    const gx = Math.floor(px / this.cell)
+    const gy = Math.floor(py / this.cell)
     if (gx >= st.city.grid_w || gy >= st.city.grid_h) return
     const hit = st.city.buildings.find((b) => gx >= b.x && gx < b.x + b.w && gy >= b.y && gy < b.y + b.h)
     if (hit) this.buildingHandlers.forEach((fn) => fn(hit.id))
@@ -88,12 +91,16 @@ export class Canvas2DRenderer implements IRenderer {
   private draw() {
     const ctx = this.ctx
     const st = this.state
-    if (!ctx || !st) return
+    if (!ctx || !st || this.w === 0) return
     const { grid_w, grid_h, buildings } = st.city
-    const gpw = grid_w * CELL
-    const gph = grid_h * CELL
-    this.offX = Math.max(0, Math.floor((this.w - gpw) / 2))
-    this.offY = Math.max(0, Math.floor((this.h - gph) / 2))
+
+    // Célula dinâmica: a grade preenche a viewport (menos uma margem), mantendo proporção.
+    this.cell = Math.max(MIN_CELL, Math.floor(Math.min((this.w - MARGIN * 2) / grid_w, (this.h - MARGIN * 2) / grid_h)))
+    const cell = this.cell
+    const gpw = grid_w * cell
+    const gph = grid_h * cell
+    this.offX = Math.floor((this.w - gpw) / 2)
+    this.offY = Math.floor((this.h - gph) / 2)
 
     ctx.clearRect(0, 0, this.w, this.h)
     ctx.fillStyle = '#11141c'
@@ -104,41 +111,42 @@ export class Canvas2DRenderer implements IRenderer {
 
     ctx.fillStyle = '#1b1f2a'
     ctx.fillRect(0, 0, gpw, gph)
-    ctx.strokeStyle = '#303749'
+    ctx.strokeStyle = '#2a3142'
     ctx.lineWidth = 1
     for (let gx = 0; gx <= grid_w; gx++) {
       ctx.beginPath()
-      ctx.moveTo(gx * CELL + 0.5, 0)
-      ctx.lineTo(gx * CELL + 0.5, gph)
+      ctx.moveTo(gx * cell + 0.5, 0)
+      ctx.lineTo(gx * cell + 0.5, gph)
       ctx.stroke()
     }
     for (let gy = 0; gy <= grid_h; gy++) {
       ctx.beginPath()
-      ctx.moveTo(0, gy * CELL + 0.5)
-      ctx.lineTo(gpw, gy * CELL + 0.5)
+      ctx.moveTo(0, gy * cell + 0.5)
+      ctx.lineTo(gpw, gy * cell + 0.5)
       ctx.stroke()
     }
 
+    const font = Math.max(11, Math.floor(cell * 0.18))
+    const pad = Math.max(3, Math.floor(cell * 0.08))
     for (const b of buildings) {
-      const x = b.x * CELL
-      const y = b.y * CELL
-      const w = b.w * CELL
-      const h = b.h * CELL
-      const pad = 4
+      const x = b.x * cell
+      const y = b.y * cell
+      const w = b.w * cell
+      const h = b.h * cell
       ctx.fillStyle = TYPE_COLOR[b.type] ?? '#4a5568'
-      roundRect(ctx, x + pad, y + pad, w - 2 * pad, h - 2 * pad, 6)
+      roundRect(ctx, x + pad, y + pad, w - 2 * pad, h - 2 * pad, 8)
       ctx.fill()
       if (b.id === st.selectedBuildingId) {
         ctx.strokeStyle = '#ffffff'
-        ctx.lineWidth = 2
-        roundRect(ctx, x + 2, y + 2, w - 4, h - 4, 8)
+        ctx.lineWidth = 3
+        roundRect(ctx, x + 2, y + 2, w - 4, h - 4, 10)
         ctx.stroke()
       }
       ctx.fillStyle = '#ffffff'
-      ctx.font = '11px system-ui, sans-serif'
+      ctx.font = `${font}px system-ui, sans-serif`
       ctx.textBaseline = 'top'
-      ctx.fillText(SHORT[b.type] ?? b.type, x + 6, y + 6)
-      ctx.fillText('N' + b.level, x + 6, y + 20)
+      ctx.fillText(SHORT[b.type] ?? b.type, x + pad + 4, y + pad + 4)
+      ctx.fillText('N' + b.level, x + pad + 4, y + pad + 6 + font)
     }
 
     ctx.restore()
