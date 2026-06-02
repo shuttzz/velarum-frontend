@@ -1,200 +1,66 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { formatAmount } from './format'
+import { useState, type CSSProperties } from 'react'
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query'
+import { CityView } from './features/city/CityView'
+import { useCreateGame } from './queries/useGameMutations'
+import { queryKeys } from './queries/keys'
 
-type Amounts = { matter: number; energy: number; knowledge: number }
-type Building = { slot: number; type: string; level: number }
-type City = {
-  id: string
-  name: string
-  era: number
-  resources: Amounts
-  rate: Amounts
-  capacity: Amounts
-  buildings: Building[]
-  server_now: string
-}
-
-const BUILDING_NAMES: Record<string, string> = {
-  lar_do_cla: 'Lar do Clã',
-  viveiro_de_pedra: 'Viveiro de Pedra',
-  fogueira_comunal: 'Fogueira Comunal',
-  pedra_da_memoria: 'Pedra da Memória',
-  celeiro_de_argila: 'Celeiro de Argila',
-  canteiro_de_almas: 'Canteiro de Almas',
-}
-
-type Snapshot = { resources: Amounts; rate: Amounts; capacity: Amounts; at: number }
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } })
 
 export function App() {
-  const [city, setCity] = useState<City | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const snap = useRef<Snapshot | null>(null)
-  const [, force] = useState(0)
-
-  // Tick local: re-renderiza ~4x/s para os contadores "subirem" suavemente.
-  useEffect(() => {
-    const t = setInterval(() => force((x) => x + 1), 250)
-    return () => clearInterval(t)
-  }, [])
-
-  function apply(c: City) {
-    setCity(c)
-    snap.current = { resources: c.resources, rate: c.rate, capacity: c.capacity, at: Date.now() }
-    setError(null)
-  }
-
-  // Recurso exibido = valor no fetch + taxa * tempo decorrido no cliente (limitado ao teto).
-  function shown(key: keyof Amounts): number {
-    const s = snap.current
-    if (!s) return 0
-    const hours = (Date.now() - s.at) / 3_600_000
-    return Math.min(s.capacity[key], s.resources[key] + s.rate[key] * hours)
-  }
-
-  async function newGame() {
-    setBusy(true)
-    try {
-      const r = await fetch('/api/games', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
-      if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      apply(await r.json())
-    } catch (e) {
-      setError(String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function refresh(id: string) {
-    try {
-      const r = await fetch(`/api/cities/${id}`)
-      if (r.ok) apply(await r.json())
-    } catch {
-      /* ignora erros transitórios de polling */
-    }
-  }
-
-  async function build(type: string) {
-    if (!city) return
-    setBusy(true)
-    try {
-      const r = await fetch(`/api/cities/${city.id}/buildings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ building_type: type }),
-      })
-      if (!r.ok) {
-        const body = await r.json().catch(() => ({}))
-        throw new Error(body.error ?? `HTTP ${r.status}`)
-      }
-      await refresh(city.id)
-    } catch (e) {
-      setError(String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function upgrade(slot: number) {
-    if (!city) return
-    setBusy(true)
-    try {
-      const r = await fetch(`/api/cities/${city.id}/buildings/${slot}/upgrade`, { method: 'POST' })
-      if (!r.ok) {
-        const body = await r.json().catch(() => ({}))
-        throw new Error(body.error ?? `HTTP ${r.status}`)
-      }
-      await refresh(city.id)
-    } catch (e) {
-      setError(String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  // Polling: sincroniza com o servidor a cada 3s (pega conclusão de construção / nova produção).
-  useEffect(() => {
-    if (!city) return
-    const t = setInterval(() => refresh(city.id), 3000)
-    return () => clearInterval(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city?.id])
-
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: 32, maxWidth: 720, margin: '0 auto', lineHeight: 1.5 }}>
-      <h1>Velarum</h1>
-
-      {!city && (
-        <>
-          <p>Funde sua civilização e veja os recursos crescerem.</p>
-          <button onClick={newGame} disabled={busy} style={btn}>
-            {busy ? 'Criando…' : 'Novo jogo'}
-          </button>
-        </>
-      )}
-
-      {city && (
-        <>
-          <h2>
-            {city.name} <small style={{ color: '#888' }}>· Era {city.era}</small>
-          </h2>
-
-          <div style={{ display: 'flex', gap: 24, margin: '16px 0' }}>
-            <ResourceBox label="Matéria" value={shown('matter')} cap={city.capacity.matter} rate={city.rate.matter} />
-            <ResourceBox label="Energia" value={shown('energy')} cap={city.capacity.energy} rate={city.rate.energy} />
-            <ResourceBox label="Conhecimento" value={shown('knowledge')} cap={city.capacity.knowledge} rate={city.rate.knowledge} />
-          </div>
-
-          <h3>Edifícios</h3>
-          <ul>
-            {city.buildings.map((b) => (
-              <li key={b.slot} style={{ marginBottom: 4 }}>
-                {BUILDING_NAMES[b.type] ?? b.type} — nível {b.level}{' '}
-                <small style={{ color: '#888' }}>(slot {b.slot})</small>{' '}
-                <button onClick={() => upgrade(b.slot)} disabled={busy} style={smallBtn}>
-                  ⬆ upgrade
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          <button onClick={() => build('viveiro_de_pedra')} disabled={busy} style={btn}>
-            Construir Viveiro de Pedra (+8 Matéria/h, ~30s)
-          </button>
-        </>
-      )}
-
-      {error && <p style={{ color: 'crimson' }}>⚠ {error}</p>}
-    </main>
+    <QueryClientProvider client={queryClient}>
+      <Root />
+    </QueryClientProvider>
   )
 }
 
-function ResourceBox({ label, value, cap, rate }: { label: string; value: number; cap: number; rate: number }) {
-  return (
-    <div style={{ minWidth: 140 }}>
-      <div style={{ color: '#666', fontSize: 13 }}>{label}</div>
-      <div style={{ fontSize: 24, fontVariantNumeric: 'tabular-nums' }}>
-        {formatAmount(value)} <span style={{ fontSize: 13, color: '#aaa' }}>/ {formatAmount(cap)}</span>
+function Root() {
+  const qc = useQueryClient()
+  const [cityId, setCityId] = useState<string | null>(null)
+  const createGame = useCreateGame()
+
+  function start() {
+    createGame.mutate(undefined, {
+      onSuccess: (city) => {
+        qc.setQueryData(queryKeys.city(city.id), city)
+        setCityId(city.id)
+      },
+    })
+  }
+
+  if (!cityId) {
+    return (
+      <div style={center}>
+        <div style={{ textAlign: 'center', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
+          <h1>Velarum</h1>
+          <p style={{ color: '#9aa3b2' }}>Funde sua civilização e veja a cidade crescer.</p>
+          <button onClick={start} disabled={createGame.isPending} style={bigBtn}>
+            {createGame.isPending ? 'Criando…' : 'Novo jogo'}
+          </button>
+          {createGame.isError && <p style={{ color: 'crimson' }}>Erro ao criar o jogo.</p>}
+        </div>
       </div>
-      <div style={{ fontSize: 12, color: rate > 0 ? 'green' : '#bbb' }}>+{rate}/h</div>
-    </div>
-  )
+    )
+  }
+
+  return <CityView cityId={cityId} />
 }
 
-const btn: CSSProperties = {
-  padding: '8px 16px',
-  fontSize: 15,
+const center: CSSProperties = {
+  width: '100vw',
+  height: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: '#11141c',
+}
+
+const bigBtn: CSSProperties = {
+  padding: '10px 20px',
+  fontSize: 16,
   borderRadius: 8,
-  border: '1px solid #ccc',
+  border: '1px solid #39415a',
+  background: '#222838',
+  color: '#fff',
   cursor: 'pointer',
-  background: '#f7f7f7',
-}
-
-const smallBtn: CSSProperties = {
-  padding: '2px 8px',
-  fontSize: 12,
-  borderRadius: 6,
-  border: '1px solid #ccc',
-  cursor: 'pointer',
-  background: '#f0f0f0',
 }
