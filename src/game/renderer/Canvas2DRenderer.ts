@@ -184,6 +184,47 @@ export class Canvas2DRenderer implements IRenderer {
       ctx.fillText('N' + b.level, x + pad + 4, y + pad + 6 + font)
     }
 
+    // Construções/upgrades em andamento: placeholder "em obras" + contador regressivo (UTC).
+    const nowMs = Date.now()
+    for (const p of st.city.pending) {
+      const px = p.x * cell
+      const py = p.y * cell
+      const remaining = Math.max(0, Math.ceil((Date.parse(p.finish_at) - nowMs) / 1000))
+      const txt = remaining >= 60 ? `${Math.floor(remaining / 60)}m${String(remaining % 60).padStart(2, '0')}s` : `${remaining}s`
+
+      if (!p.is_upgrade) {
+        ctx.save()
+        ctx.globalAlpha = 0.45
+        ctx.fillStyle = TYPE_COLOR[p.building_type] ?? '#4a5568'
+        roundRect(ctx, px + pad, py + pad, cell - 2 * pad, cell - 2 * pad, 8)
+        ctx.fill()
+        ctx.restore()
+        ctx.setLineDash([6, 4])
+        ctx.strokeStyle = '#d9b44a'
+        ctx.lineWidth = 2
+        roundRect(ctx, px + pad, py + pad, cell - 2 * pad, cell - 2 * pad, 8)
+        ctx.stroke()
+        ctx.setLineDash([])
+        ctx.fillStyle = '#e6e6e6'
+        ctx.font = `${Math.max(10, Math.floor(font * 0.9))}px system-ui, sans-serif`
+        ctx.textBaseline = 'top'
+        ctx.fillText('em obras', px + pad + 4, py + pad + 4)
+      }
+
+      // pílula com o contador no rodapé da célula
+      ctx.font = `bold ${font}px system-ui, sans-serif`
+      ctx.textBaseline = 'alphabetic'
+      const bw = ctx.measureText(txt).width + 12
+      const bh = font + 8
+      const bx = px + (cell - bw) / 2
+      const by = py + cell - bh - 4
+      ctx.fillStyle = 'rgba(0,0,0,0.72)'
+      roundRect(ctx, bx, by, bw, bh, 6)
+      ctx.fill()
+      ctx.fillStyle = '#ffd86b'
+      ctx.fillText(txt, bx + 6, by + bh - 6)
+    }
+
     // Fantasma de posicionamento: segue o mouse ao construir ou mover (verde=válido, vermelho=ocupado).
     const interactive = st.buildMode.type === 'placing' || st.selectedBuildingId !== null
     if (interactive && this.hover) {

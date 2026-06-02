@@ -10,6 +10,16 @@ export type Building = {
   h: number
 }
 
+export type PendingBuild = {
+  id: string
+  building_type: string
+  target_level: number
+  x: number
+  y: number
+  is_upgrade: boolean
+  finish_at: string
+}
+
 export type City = {
   id: string
   player_id: string
@@ -21,6 +31,7 @@ export type City = {
   grid_w: number
   grid_h: number
   buildings: Building[]
+  pending: PendingBuild[]
   server_now: string
 }
 

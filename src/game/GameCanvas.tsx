@@ -32,6 +32,13 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
     if (city) renderer.render({ city, selectedBuildingId, buildMode })
   }, [renderer, city, selectedBuildingId, buildMode])
 
+  // Enquanto há construções em andamento, redesenha periodicamente para o contador decrementar.
+  useEffect(() => {
+    if (!city || city.pending.length === 0) return
+    const t = setInterval(() => renderer.render({ city, selectedBuildingId, buildMode }), 500)
+    return () => clearInterval(t)
+  }, [renderer, city, selectedBuildingId, buildMode])
+
   useEffect(() => {
     const onBuilding = (id: string) => useGameUIStore.getState().selectBuilding(id)
     const onCell = (x: number, y: number) => {
