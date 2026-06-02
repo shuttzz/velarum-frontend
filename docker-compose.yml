@@ -1,0 +1,26 @@
+# Ambiente de desenvolvimento do frontend — NÃO precisa de Node instalado na máquina.
+#
+#   docker compose up                       # sobe o dev server (Vite) em http://localhost:5173
+#   docker compose run --rm frontend npm test
+#
+# As chamadas a /api/* são encaminhadas pelo Vite ao backend (http://localhost:8080 no host),
+# então suba o backend (../backend: docker compose up) para a conexão funcionar.
+
+services:
+  frontend:
+    image: node:22
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install && pnpm dev"
+    volumes:
+      - ./:/app
+      - node-modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_BACKEND_URL: "http://host.docker.internal:8080"
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0" # corepack baixa o pnpm fixado sem prompt interativo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  node-modules:
