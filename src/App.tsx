@@ -8,6 +8,7 @@ import { AuthScreen } from './features/auth/AuthScreen'
 import { AccountControls } from './components/AccountControls'
 import { useGameUIStore } from './stores/useGameUIStore'
 import { useEnterWorld } from './queries/useEnterWorld'
+import { useCompletionRefetch } from './queries/useCompletionRefetch'
 import { useMe } from './queries/useAuth'
 import { errorMessage } from './api/client'
 import { queryKeys } from './queries/keys'
@@ -39,6 +40,9 @@ function Game({ account }: { account: Account }) {
   const qc = useQueryClient()
   const enter = useEnterWorld()
   const view = useGameUIStore((s) => s.view)
+
+  // Refetch automático quando uma tarefa conclui (contador zera) — em vez de esperar o poll.
+  useCompletionRefetch(enter.data?.id ?? null)
 
   // Semeia o cache da cidade com o que a entrada já trouxe (evita um GET extra/flash).
   useEffect(() => {
