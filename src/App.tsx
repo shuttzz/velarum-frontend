@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/reac
 import { useTranslation } from 'react-i18next'
 import { CityView } from './features/city/CityView'
 import { WorldMapView } from './features/world/WorldMapView'
+import { ReportsOverlay } from './features/reports/ReportsOverlay'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { AccountControls } from './components/AccountControls'
 import { useGameUIStore } from './stores/useGameUIStore'
@@ -45,7 +46,13 @@ function Game({ account }: { account: Account }) {
   }, [enter.data, qc])
 
   if (enter.data) {
-    return view === 'map' ? <WorldMapView cityId={enter.data.id} /> : <CityView cityId={enter.data.id} />
+    const cityId = enter.data.id
+    return (
+      <>
+        {view === 'map' ? <WorldMapView cityId={cityId} /> : <CityView cityId={cityId} />}
+        <ReportsOverlay cityId={cityId} />
+      </>
+    )
   }
 
   // Falha ao entrar: nova tentativa + controles de conta (sair/idioma).

@@ -107,6 +107,13 @@
     "defeat": "Derrota",
     "send": "Enviar exército"
   },
+  "reports": {
+    "title": "Relatórios",
+    "empty": "Nenhum relatório ainda.",
+    "losses": "Perdas",
+    "none": "nenhuma",
+    "reward": "Recompensa"
+  },
   "provinces": {
     "clareira_dos_ecos": "Clareira dos Ecos",
     "pedreira_selvagem": "Pedreira Selvagem",

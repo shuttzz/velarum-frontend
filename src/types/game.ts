@@ -56,6 +56,24 @@ export type City = {
   server_now: string
 }
 
+export type BattleReport = {
+  province_id: string
+  province_name_key: string
+  attacker_won: boolean
+  sent: Record<string, number>
+  losses: Record<string, number>
+  survivors: Record<string, number>
+  reward: Amounts
+}
+
+export type Report = {
+  id: string
+  type: string
+  read: boolean
+  created_at: string
+  payload: BattleReport
+}
+
 export type Province = {
   id: string
   name_key: string

@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { BuildQueued, City, March, Province } from '../types/game'
+import type { BuildQueued, City, March, Province, Report } from '../types/game'
 
 export const citiesApi = {
   getCity: (cityId: string) => api.get<City>(`/cities/${cityId}`),
@@ -23,4 +23,8 @@ export const citiesApi = {
 
   march: (cityId: string, body: { province_id: string; troops: Record<string, number> }) =>
     api.post<March>(`/cities/${cityId}/march`, body),
+
+  getReports: (cityId: string) => api.get<Report[]>(`/cities/${cityId}/reports`),
+
+  markReportsRead: (cityId: string) => api.postVoid(`/cities/${cityId}/reports/read`, {}),
 }

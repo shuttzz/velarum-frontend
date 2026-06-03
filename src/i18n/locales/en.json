@@ -107,6 +107,13 @@
     "defeat": "Defeat",
     "send": "Send army"
   },
+  "reports": {
+    "title": "Reports",
+    "empty": "No reports yet.",
+    "losses": "Losses",
+    "none": "none",
+    "reward": "Reward"
+  },
   "provinces": {
     "clareira_dos_ecos": "Glade of Echoes",
     "pedreira_selvagem": "Wild Quarry",

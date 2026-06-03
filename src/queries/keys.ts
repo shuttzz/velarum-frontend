@@ -4,4 +4,5 @@ export const queryKeys = {
   catalog: ['catalog'] as const,
   me: ['auth', 'me'] as const,
   provinces: (cityId: string) => ['provinces', cityId] as const,
+  reports: (cityId: string) => ['reports', cityId] as const,
 }
