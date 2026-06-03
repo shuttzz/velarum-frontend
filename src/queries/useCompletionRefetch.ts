@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCity } from './useCity'
+import { serverNow } from '../lib/serverClock'
 import { queryKeys } from './keys'
 
 // Buffer (ms) após o finish_at para cobrir a latência do scheduler do backend (tick ~250ms).
@@ -13,9 +14,19 @@ export function useCompletionRefetch(cityId: string | null) {
   const qc = useQueryClient()
   const { data: city } = useCity(cityId)
 
+  // Ao voltar o foco da aba (pós-sleep/hibernação), ressincroniza: refetch reancorará o relógio.
+  useEffect(() => {
+    if (!cityId) return
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void qc.invalidateQueries({ queryKey: queryKeys.city(cityId) })
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [cityId, qc])
+
   useEffect(() => {
     if (!cityId || !city) return
-    const now = Date.now()
+    const now = serverNow()
     const times: number[] = []
     for (const p of city.pending) times.push(new Date(p.finish_at).getTime())
     for (const r of city.recruits) times.push(new Date(r.finish_at).getTime())

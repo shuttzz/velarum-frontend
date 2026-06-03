@@ -1,4 +1,5 @@
 import type { IRenderer, RenderState, RendererEvents } from './IRenderer'
+import { serverNow } from '../../lib/serverClock'
 
 // Cores placeholder por tipo de edifício (no lugar de sprites). Trocar por imagens/Pixi depois.
 const TYPE_COLOR: Record<string, string> = {
@@ -185,7 +186,7 @@ export class Canvas2DRenderer implements IRenderer {
     }
 
     // Construções/upgrades em andamento: placeholder "em obras" + contador regressivo (UTC).
-    const nowMs = Date.now()
+    const nowMs = serverNow()
     for (const p of st.city.pending) {
       const px = p.x * cell
       const py = p.y * cell
