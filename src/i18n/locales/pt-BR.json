@@ -87,6 +87,12 @@
     "lanceiro": "Lanceiro",
     "arqueiro": "Arqueiro"
   },
+  "army": {
+    "openBtn": "🪖 Exército",
+    "title": "Exército",
+    "marching": "Em marcha",
+    "noMarches": "Nenhuma marcha em andamento."
+  },
   "military": {
     "title": "Exército",
     "garrison": "Guarnição",

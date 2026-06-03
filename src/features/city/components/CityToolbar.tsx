@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { City } from '../../../types/game'
 import { useGameUIStore } from '../../../stores/useGameUIStore'
 import { ConstructionModal } from './ConstructionModal'
+import { ArmyModal } from './ArmyModal'
 
 // Barra de ações da cidade (HUD, centro inferior): Construir (abre modal), Editar layout
 // (toggle), Mapa. Substitui os painéis fixos por uma barra enxuta + modais.
@@ -12,6 +13,7 @@ export function CityToolbar({ city }: { city: City }) {
   const toggleEdit = useGameUIStore((s) => s.toggleEdit)
   const setView = useGameUIStore((s) => s.setView)
   const [constructOpen, setConstructOpen] = useState(false)
+  const [armyOpen, setArmyOpen] = useState(false)
 
   return (
     <>
@@ -19,6 +21,9 @@ export function CityToolbar({ city }: { city: City }) {
       <div style={bar}>
         <button onClick={() => setConstructOpen(true)} style={btn}>
           {t('build.openBtn')}
+        </button>
+        <button onClick={() => setArmyOpen(true)} style={btn}>
+          {t('army.openBtn')}
         </button>
         <button onClick={toggleEdit} aria-pressed={editMode} style={{ ...btn, ...(editMode ? active : null) }}>
           {editMode ? t('build.editDone') : t('build.edit')}
@@ -28,6 +33,7 @@ export function CityToolbar({ city }: { city: City }) {
         </button>
       </div>
       {constructOpen && <ConstructionModal city={city} onClose={() => setConstructOpen(false)} />}
+      {armyOpen && <ArmyModal city={city} onClose={() => setArmyOpen(false)} />}
     </>
   )
 }

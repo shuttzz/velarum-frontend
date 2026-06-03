@@ -87,6 +87,12 @@
     "lanceiro": "Spearman",
     "arqueiro": "Archer"
   },
+  "army": {
+    "openBtn": "🪖 Army",
+    "title": "Army",
+    "marching": "Marching",
+    "noMarches": "No marches in progress."
+  },
   "military": {
     "title": "Army",
     "garrison": "Garrison",
