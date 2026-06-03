@@ -97,7 +97,7 @@ export class Canvas2DRenderer implements IRenderer {
     const st = this.state
     const canvas = this.canvas
     if (!st || !canvas) return
-    const interactive = st.buildMode.type === 'placing' || st.selectedBuildingId !== null
+    const interactive = st.buildMode.type === 'placing' || (st.editMode && st.selectedBuildingId !== null)
     if (!interactive) {
       if (this.hover) {
         this.hover = null
@@ -226,7 +226,7 @@ export class Canvas2DRenderer implements IRenderer {
     }
 
     // Fantasma de posicionamento: segue o mouse ao construir ou mover (verde=válido, vermelho=ocupado).
-    const interactive = st.buildMode.type === 'placing' || st.selectedBuildingId !== null
+    const interactive = st.buildMode.type === 'placing' || (st.editMode && st.selectedBuildingId !== null)
     if (interactive && this.hover) {
       const hx = this.hover.x
       const hy = this.hover.y

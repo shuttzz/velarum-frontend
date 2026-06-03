@@ -13,6 +13,7 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
   const { data: city } = useCity(cityId)
   const selectedBuildingId = useGameUIStore((s) => s.selectedBuildingId)
   const buildMode = useGameUIStore((s) => s.buildMode)
+  const editMode = useGameUIStore((s) => s.editMode)
   const actions = useCityActions(cityId)
 
   // ref com o contexto atual para os handlers do renderer não verem estado obsoleto
@@ -29,15 +30,15 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
   useResizeCanvas(canvasRef, renderer)
 
   useEffect(() => {
-    if (city) renderer.render({ city, selectedBuildingId, buildMode })
-  }, [renderer, city, selectedBuildingId, buildMode])
+    if (city) renderer.render({ city, selectedBuildingId, buildMode, editMode })
+  }, [renderer, city, selectedBuildingId, buildMode, editMode])
 
   // Enquanto há construções em andamento, redesenha periodicamente para o contador decrementar.
   useEffect(() => {
     if (!city || city.pending.length === 0) return
-    const t = setInterval(() => renderer.render({ city, selectedBuildingId, buildMode }), 500)
+    const t = setInterval(() => renderer.render({ city, selectedBuildingId, buildMode, editMode }), 500)
     return () => clearInterval(t)
-  }, [renderer, city, selectedBuildingId, buildMode])
+  }, [renderer, city, selectedBuildingId, buildMode, editMode])
 
   useEffect(() => {
     const onBuilding = (id: string) => useGameUIStore.getState().selectBuilding(id)
@@ -47,8 +48,11 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
       if (ui.buildMode.type === 'placing') {
         actions.construct.mutate({ building_type: ui.buildMode.buildingType, x, y })
         ui.cancel()
-      } else if (ui.selectedBuildingId) {
+      } else if (ui.editMode && ui.selectedBuildingId) {
+        // Só move no MODO EDIÇÃO; fora dele, clicar em célula vazia apenas limpa a seleção.
         actions.move.mutate({ buildingId: ui.selectedBuildingId, x, y })
+        ui.selectBuilding(null)
+      } else if (ui.selectedBuildingId) {
         ui.selectBuilding(null)
       }
     }
@@ -60,7 +64,7 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
     }
   }, [renderer])
 
-  const interactive = buildMode.type === 'placing' || selectedBuildingId !== null
+  const interactive = buildMode.type === 'placing' || (editMode && selectedBuildingId !== null)
   return (
     <canvas
       ref={canvasRef}

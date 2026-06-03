@@ -44,12 +44,17 @@
     "placingHint": "Clique numa célula vazia…",
     "locked": "🔒 requer {{reqs}}",
     "req": "{{name}} nv{{level}}",
-    "maxReached": "máx. {{max}}"
+    "maxReached": "máx. {{max}}",
+    "edit": "✏️ Editar layout",
+    "editDone": "✓ Concluir edição"
   },
   "selected": {
     "levelPos": "nível {{level}} · posição ({{x}},{{y}})",
     "upgradeTo": "Upgrade → nível {{level}}",
     "upgrade": "⬆ upgrade",
+    "upgrading": "⏳ Subindo p/ nv{{level}} · {{time}}",
+    "cancel": "✕ Cancelar (devolve recursos)",
+    "cancelling": "Cancelando…",
     "moveHint": "Para mover: clique numa célula vazia."
   },
   "buildings": {
@@ -132,6 +137,7 @@
     "max_copies": "Limite de cópias atingido.",
     "bad_placement": "Posição inválida.",
     "building_busy": "Edifício ocupado por uma obra.",
+    "not_cancelable": "Esta obra não pode mais ser cancelada.",
     "city_not_found": "Cidade não encontrada.",
     "forbidden_not_owner": "Esta cidade não pertence à sua conta.",
     "bad_request": "Requisição inválida.",

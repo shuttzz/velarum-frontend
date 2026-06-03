@@ -44,12 +44,17 @@
     "placingHint": "Click an empty cell…",
     "locked": "🔒 requires {{reqs}}",
     "req": "{{name}} lv{{level}}",
-    "maxReached": "max. {{max}}"
+    "maxReached": "max. {{max}}",
+    "edit": "✏️ Edit layout",
+    "editDone": "✓ Done editing"
   },
   "selected": {
     "levelPos": "level {{level}} · position ({{x}},{{y}})",
     "upgradeTo": "Upgrade → level {{level}}",
     "upgrade": "⬆ upgrade",
+    "upgrading": "⏳ Upgrading to lv{{level}} · {{time}}",
+    "cancel": "✕ Cancel (refunds resources)",
+    "cancelling": "Cancelling…",
     "moveHint": "To move: click an empty cell."
   },
   "buildings": {
@@ -132,6 +137,7 @@
     "max_copies": "Copy limit reached.",
     "bad_placement": "Invalid position.",
     "building_busy": "Building is busy with construction.",
+    "not_cancelable": "This build can no longer be cancelled.",
     "city_not_found": "City not found.",
     "forbidden_not_owner": "This city does not belong to your account.",
     "bad_request": "Invalid request.",

@@ -6,6 +6,7 @@ export type RenderState = {
   city: City
   selectedBuildingId: string | null
   buildMode: BuildMode
+  editMode: boolean // em edição, o edifício selecionado pode ser movido (fantasma segue o mouse)
 }
 
 export type RendererEvents = {

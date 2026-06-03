@@ -26,8 +26,12 @@ export function useCityActions(cityId: string) {
       citiesApi.move(cityId, p.buildingId, { x: p.x, y: p.y }),
     onSuccess: invalidate,
   })
+  const cancel = useMutation({
+    mutationFn: (buildId: string) => citiesApi.cancelBuild(cityId, buildId),
+    onSuccess: invalidate,
+  })
 
-  return { construct, upgrade, move }
+  return { construct, upgrade, move, cancel }
 }
 
 // Ações militares: recrutar (cidade) e marchar (mapa). Marchar afeta cidade + províncias.

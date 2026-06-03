@@ -5,17 +5,25 @@ import { useGameUIStore } from '../../../stores/useGameUIStore'
 import { useCityActions } from '../../../queries/useGameMutations'
 import { useCatalog } from '../../../queries/useCatalog'
 import { buildSecondsForLevel, canAfford, costForLevel, formatDuration } from '../catalog'
+import { useNow, secondsUntil } from '../../../lib/useNow'
 
 // Painel do edifício selecionado (HUD, lateral direita): upgrade (com custo/tempo) e dica de mover.
 export function SelectedPanel({ city }: { city: City }) {
   const { t } = useTranslation()
   const selectedId = useGameUIStore((s) => s.selectedBuildingId)
   const selectBuilding = useGameUIStore((s) => s.selectBuilding)
-  const { upgrade } = useCityActions(city.id)
+  const editMode = useGameUIStore((s) => s.editMode)
+  const { upgrade, cancel } = useCityActions(city.id)
   const { data: catalog } = useCatalog()
+  const now = useNow()
 
   const b = city.buildings.find((x) => x.id === selectedId)
   if (!b) return null
+
+  // Upgrade em andamento DESTE edifício (casa por posição + tipo).
+  const pendingUpgrade = city.pending.find(
+    (p) => p.is_upgrade && p.building_type === b.type && p.x === b.x && p.y === b.y,
+  )
 
   const def = catalog?.buildings.find((d) => d.key === b.type)
   const nextLevel = b.level + 1
@@ -30,31 +38,47 @@ export function SelectedPanel({ city }: { city: City }) {
         {t('selected.levelPos', { level: b.level, x: b.x, y: b.y })}
       </div>
 
-      {upCost && upTime != null && (
+      {pendingUpgrade ? (
+        // Upgrade em andamento: mostra contador + cancelar (devolve recursos).
         <div style={{ fontSize: 12, marginTop: 8 }}>
-          <div style={{ color: '#9aa3b2' }}>{t('selected.upgradeTo', { level: nextLevel })}</div>
-          <div style={{ color: affordable ? '#cfd6e4' : '#e0884a' }}>
-            {[
-              upCost.matter && `${upCost.matter} ${t('resourceShort.matter')}`,
-              upCost.energy && `${upCost.energy} ${t('resourceShort.energy')}`,
-              upCost.knowledge && `${upCost.knowledge} ${t('resourceShort.knowledge')}`,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
+          <div style={{ color: '#e0b04a' }}>
+            {t('selected.upgrading', { level: pendingUpgrade.target_level, time: formatDuration(secondsUntil(pendingUpgrade.finish_at, now)) })}
           </div>
-          <div style={{ color: '#9aa3b2' }}>⏱ {formatDuration(upTime)}</div>
         </div>
+      ) : (
+        upCost &&
+        upTime != null && (
+          <div style={{ fontSize: 12, marginTop: 8 }}>
+            <div style={{ color: '#9aa3b2' }}>{t('selected.upgradeTo', { level: nextLevel })}</div>
+            <div style={{ color: affordable ? '#cfd6e4' : '#e0884a' }}>
+              {[
+                upCost.matter && `${upCost.matter} ${t('resourceShort.matter')}`,
+                upCost.energy && `${upCost.energy} ${t('resourceShort.energy')}`,
+                upCost.knowledge && `${upCost.knowledge} ${t('resourceShort.knowledge')}`,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </div>
+            <div style={{ color: '#9aa3b2' }}>⏱ {formatDuration(upTime)}</div>
+          </div>
+        )
       )}
 
       <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-        <button onClick={() => upgrade.mutate(b.id)} disabled={upgrade.isPending} style={btn}>
-          {t('selected.upgrade')}
-        </button>
+        {pendingUpgrade ? (
+          <button onClick={() => cancel.mutate(pendingUpgrade.id)} disabled={cancel.isPending} style={cancelBtn}>
+            {cancel.isPending ? t('selected.cancelling') : t('selected.cancel')}
+          </button>
+        ) : (
+          <button onClick={() => upgrade.mutate(b.id)} disabled={upgrade.isPending} style={btn}>
+            {t('selected.upgrade')}
+          </button>
+        )}
         <button onClick={() => selectBuilding(null)} style={btn}>
           {t('common.clear')}
         </button>
       </div>
-      <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 0 }}>{t('selected.moveHint')}</p>
+      {editMode && <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 0 }}>{t('selected.moveHint')}</p>}
     </div>
   )
 }
@@ -80,4 +104,10 @@ const btn: CSSProperties = {
   background: '#222838',
   color: '#fff',
   cursor: 'pointer',
+}
+
+const cancelBtn: CSSProperties = {
+  ...btn,
+  borderColor: '#7a4a4a',
+  background: '#3a2626',
 }

@@ -13,6 +13,9 @@ export const citiesApi = {
   move: (cityId: string, buildingId: string, body: { x: number; y: number }) =>
     api.postVoid(`/cities/${cityId}/buildings/${buildingId}/move`, body),
 
+  cancelBuild: (cityId: string, buildId: string) =>
+    api.postVoid(`/cities/${cityId}/builds/${buildId}/cancel`, {}),
+
   recruit: (cityId: string, body: { unit_type: string; count: number }) =>
     api.post<{ id: string }>(`/cities/${cityId}/recruit`, body),
 

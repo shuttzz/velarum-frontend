@@ -10,6 +10,7 @@ import { SelectedPanel } from './components/SelectedPanel'
 import { ArmyPanel } from './components/ArmyPanel'
 import { AccountControls } from '../../components/AccountControls'
 import { ViewNav } from '../../components/ViewNav'
+import { EditToggle } from '../../components/EditToggle'
 
 // Tela da cidade: canvas fullscreen + HUD sobreposto. O renderer é injetado (Canvas2D hoje,
 // PixiJS depois — mesma interface IRenderer).
@@ -25,6 +26,7 @@ export function CityView({ cityId }: { cityId: string }) {
         {city && <BuildPalette city={city} />}
         {city && <SelectedPanel city={city} />}
         {city && <ArmyPanel city={city} />}
+        <EditToggle />
         <ViewNav />
         <AccountControls style={{ position: 'absolute', bottom: 12, right: 16, pointerEvents: 'auto' }} />
       </HUDLayer>
