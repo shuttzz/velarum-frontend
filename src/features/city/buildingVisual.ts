@@ -30,18 +30,20 @@ export function unitColor(key: string): string {
 }
 
 // Ícone (emoji) placeholder por edifício, exibido no tile no lugar do nome (até entrar o sprite).
+// Importante: usar emojis de codepoint "cheio" (renderizam em cor no canvas). Símbolos como
+// ⛏/⚔/⚖/🕯/🛡 dependem do seletor de variação e somem no canvas — evitados aqui.
 const ICONS: Record<string, string> = {
-  lar_do_cla: '🏛',
-  viveiro_de_pedra: '⛏',
+  lar_do_cla: '🏰',
+  viveiro_de_pedra: '🪨',
   fogueira_comunal: '🔥',
   pedra_da_memoria: '📜',
   celeiro_de_argila: '📦',
-  canteiro_de_almas: '⚔',
-  altar_das_fogueiras: '🕯',
+  canteiro_de_almas: '🪖',
+  altar_das_fogueiras: '🪔',
   torre_do_vigia: '🗼',
   circulo_runico: '🔮',
-  praca_do_conselho: '⚖',
-  pira_dos_guerreiros: '🛡',
+  praca_do_conselho: '👥',
+  pira_dos_guerreiros: '🏹',
   marco_primeiros_fogos: '🏆',
 }
 

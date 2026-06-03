@@ -225,7 +225,7 @@ export class Canvas2DRenderer implements IRenderer {
       // Contador de treinamento sobre o Canteiro de Almas, se há recrutamento na fila.
       if (b.type === 'canteiro_de_almas' && recruitSoonest > 0) {
         const rem = Math.max(0, Math.ceil((recruitSoonest - nowMs) / 1000))
-        const txt = '⚔ ' + (rem >= 60 ? `${Math.floor(rem / 60)}m${String(rem % 60).padStart(2, '0')}s` : `${rem}s`)
+        const txt = '🪖 ' + (rem >= 60 ? `${Math.floor(rem / 60)}m${String(rem % 60).padStart(2, '0')}s` : `${rem}s`)
         ctx.fillStyle = '#e0b04a'
         ctx.font = `${smallFont}px system-ui, sans-serif`
         ctx.fillText(txt, cx, y + h - pad - smallFont, maxW)
