@@ -6,6 +6,7 @@ import { Canvas2DRenderer } from '../../game/renderer/Canvas2DRenderer'
 import { useCity } from '../../queries/useCity'
 import { ResourceBar } from './components/ResourceBar'
 import { BuildingModal } from './components/BuildingModal'
+import { PendingBuildModal } from './components/PendingBuildModal'
 import { CityToolbar } from './components/CityToolbar'
 import { AccountControls } from '../../components/AccountControls'
 
@@ -22,6 +23,7 @@ export function CityView({ cityId }: { cityId: string }) {
         {city && <ResourceBar city={city} />}
         {city && <CityToolbar city={city} />}
         {city && <BuildingModal city={city} />}
+        {city && <PendingBuildModal city={city} />}
         <AccountControls style={{ position: 'absolute', bottom: 12, right: 16, pointerEvents: 'auto' }} />
       </HUDLayer>
     </GameLayout>

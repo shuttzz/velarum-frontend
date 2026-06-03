@@ -36,6 +36,7 @@ export class Canvas2DRenderer implements IRenderer {
   private hover: { x: number; y: number } | null = null
   private cellHandlers = new Set<RendererEvents['cellClick']>()
   private buildingHandlers = new Set<RendererEvents['buildingClick']>()
+  private pendingHandlers = new Set<RendererEvents['pendingClick']>()
 
   mount(canvas: HTMLCanvasElement): void {
     this.canvas = canvas
@@ -70,11 +71,13 @@ export class Canvas2DRenderer implements IRenderer {
 
   on<K extends keyof RendererEvents>(event: K, handler: RendererEvents[K]): void {
     if (event === 'cellClick') this.cellHandlers.add(handler as unknown as RendererEvents['cellClick'])
+    else if (event === 'pendingClick') this.pendingHandlers.add(handler as unknown as RendererEvents['pendingClick'])
     else this.buildingHandlers.add(handler as unknown as RendererEvents['buildingClick'])
   }
 
   off<K extends keyof RendererEvents>(event: K, handler: RendererEvents[K]): void {
     if (event === 'cellClick') this.cellHandlers.delete(handler as unknown as RendererEvents['cellClick'])
+    else if (event === 'pendingClick') this.pendingHandlers.delete(handler as unknown as RendererEvents['pendingClick'])
     else this.buildingHandlers.delete(handler as unknown as RendererEvents['buildingClick'])
   }
 
@@ -90,8 +93,19 @@ export class Canvas2DRenderer implements IRenderer {
     const gy = Math.floor(py / this.cell)
     if (gx >= st.city.grid_w || gy >= st.city.grid_h) return
     const hit = st.city.buildings.find((b) => gx >= b.x && gx < b.x + b.w && gy >= b.y && gy < b.y + b.h)
-    if (hit) this.buildingHandlers.forEach((fn) => fn(hit.id))
-    else this.cellHandlers.forEach((fn) => fn(gx, gy))
+    if (hit) {
+      this.buildingHandlers.forEach((fn) => fn(hit.id))
+      return
+    }
+    // Obra NOVA em andamento (só em modo normal): clique abre o cancelamento.
+    if (st.buildMode.type === 'idle' && !st.editMode) {
+      const pend = st.city.pending.find((p) => !p.is_upgrade && p.x === gx && p.y === gy)
+      if (pend) {
+        this.pendingHandlers.forEach((fn) => fn(pend.id))
+        return
+      }
+    }
+    this.cellHandlers.forEach((fn) => fn(gx, gy))
   }
 
   private onMove = (e: MouseEvent) => {

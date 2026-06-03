@@ -42,6 +42,7 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
 
   useEffect(() => {
     const onBuilding = (id: string) => useGameUIStore.getState().selectBuilding(id)
+    const onPending = (id: string) => useGameUIStore.getState().selectPending(id)
     const onCell = (x: number, y: number) => {
       const ui = useGameUIStore.getState()
       const { actions } = ctxRef.current
@@ -54,12 +55,16 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
         ui.selectBuilding(null)
       } else if (ui.selectedBuildingId) {
         ui.selectBuilding(null)
+      } else if (ui.selectedPendingId) {
+        ui.selectPending(null)
       }
     }
     renderer.on('buildingClick', onBuilding)
+    renderer.on('pendingClick', onPending)
     renderer.on('cellClick', onCell)
     return () => {
       renderer.off('buildingClick', onBuilding)
+      renderer.off('pendingClick', onPending)
       renderer.off('cellClick', onCell)
     }
   }, [renderer])

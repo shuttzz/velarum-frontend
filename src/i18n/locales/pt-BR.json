@@ -58,6 +58,7 @@
     "upgradeTo": "Upgrade → nível {{level}}",
     "upgrade": "⬆ upgrade",
     "upgrading": "⏳ Subindo p/ nv{{level}} · {{time}}",
+    "constructing": "🏗 Construindo… {{time}}",
     "cancel": "✕ Cancelar (devolve recursos)",
     "cancelling": "Cancelando…",
     "moveHint": "Para mover: clique numa célula vazia."

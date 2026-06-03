@@ -12,6 +12,7 @@ export type RenderState = {
 export type RendererEvents = {
   cellClick: (x: number, y: number) => void
   buildingClick: (id: string) => void
+  pendingClick: (buildId: string) => void // clique numa obra NOVA em andamento (build_queue id)
 }
 
 // Contrato do renderer da cidade. Hoje implementado em Canvas 2D; trocável por PixiJS
