@@ -97,7 +97,8 @@
     "perUnit": "{{time}}/unit",
     "locked": "🔒 Barracks lv{{level}}",
     "maxNow": "Max now: {{max}}",
-    "max": "max"
+    "max": "max",
+    "training": "In training"
   },
   "map": {
     "title": "World Map",

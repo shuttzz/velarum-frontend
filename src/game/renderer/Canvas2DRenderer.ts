@@ -178,6 +178,11 @@ export class Canvas2DRenderer implements IRenderer {
 
     const font = Math.max(11, Math.floor(cell * 0.18))
     const pad = Math.max(3, Math.floor(cell * 0.08))
+    const nowMs = serverNow()
+    const smallFont = Math.max(10, Math.floor(font * 0.9))
+    // Recrutamento em andamento (feedback ambiente sobre o Canteiro): contador do mais próximo.
+    const recruitSoonest =
+      st.city.recruits.length > 0 ? Math.min(...st.city.recruits.map((r) => Date.parse(r.finish_at))) : 0
     for (const b of buildings) {
       const x = b.x * cell
       const y = b.y * cell
@@ -197,10 +202,18 @@ export class Canvas2DRenderer implements IRenderer {
       ctx.textBaseline = 'top'
       ctx.fillText(SHORT[b.type] ?? b.type, x + pad + 4, y + pad + 4)
       ctx.fillText('N' + b.level, x + pad + 4, y + pad + 6 + font)
+
+      // Contador de treinamento sobre o Canteiro de Almas, se há recrutamento na fila.
+      if (b.type === 'canteiro_de_almas' && recruitSoonest > 0) {
+        const rem = Math.max(0, Math.ceil((recruitSoonest - nowMs) / 1000))
+        const txt = '⚔ ' + (rem >= 60 ? `${Math.floor(rem / 60)}m${String(rem % 60).padStart(2, '0')}s` : `${rem}s`)
+        ctx.fillStyle = '#e0b04a'
+        ctx.font = `${smallFont}px system-ui, sans-serif`
+        ctx.fillText(txt, x + pad + 4, y + h - pad - smallFont - 4)
+      }
     }
 
     // Construções/upgrades em andamento: placeholder "em obras" + contador regressivo (UTC).
-    const nowMs = serverNow()
     for (const p of st.city.pending) {
       const px = p.x * cell
       const py = p.y * cell

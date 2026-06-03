@@ -19,6 +19,9 @@ export const citiesApi = {
   recruit: (cityId: string, body: { unit_type: string; count: number }) =>
     api.post<{ id: string }>(`/cities/${cityId}/recruit`, body),
 
+  cancelRecruit: (cityId: string, recruitId: string) =>
+    api.postVoid(`/cities/${cityId}/recruits/${recruitId}/cancel`, {}),
+
   getProvinces: (cityId: string) => api.get<Province[]>(`/cities/${cityId}/provinces`),
 
   march: (cityId: string, body: { province_id: string; troops: Record<string, number> }) =>

@@ -116,6 +116,33 @@ export function useArmyActions(cityId: string) {
       void qc.invalidateQueries({ queryKey: queryKeys.provinces(cityId) })
     },
   })
+  // Cancelar recrutamento: otimista — remove da fila e devolve o custo (custo unitário × count).
+  const cancelRecruit = useMutation<void, unknown, string, { prev?: City }>({
+    mutationFn: (recruitId) => citiesApi.cancelRecruit(cityId, recruitId),
+    onMutate: async (recruitId) => {
+      await qc.cancelQueries({ queryKey: queryKeys.city(cityId) })
+      const prev = qc.getQueryData<City>(queryKeys.city(cityId))
+      const catalog = qc.getQueryData<Catalog>(queryKeys.catalog)
+      if (prev) {
+        const r = prev.recruits.find((x) => x.id === recruitId)
+        let resources = prev.resources
+        const u = r && catalog ? catalog.units.find((d) => d.key === r.unit_type) : undefined
+        if (r && u) {
+          resources = {
+            matter: prev.resources.matter + u.cost.matter * r.count,
+            energy: prev.resources.energy + u.cost.energy * r.count,
+            knowledge: prev.resources.knowledge + u.cost.knowledge * r.count,
+          }
+        }
+        qc.setQueryData<City>(queryKeys.city(cityId), { ...prev, recruits: prev.recruits.filter((x) => x.id !== recruitId), resources })
+      }
+      return { prev }
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(queryKeys.city(cityId), ctx.prev)
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.city(cityId) }),
+  })
 
-  return { recruit, march }
+  return { recruit, march, cancelRecruit }
 }

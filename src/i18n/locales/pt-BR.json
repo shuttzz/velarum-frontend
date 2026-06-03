@@ -97,7 +97,8 @@
     "perUnit": "{{time}}/un",
     "locked": "🔒 Canteiro nv{{level}}",
     "maxNow": "Máx. agora: {{max}}",
-    "max": "máx"
+    "max": "máx",
+    "training": "Em treinamento"
   },
   "map": {
     "title": "Mapa do Mundo",

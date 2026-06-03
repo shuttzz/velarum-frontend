@@ -33,9 +33,9 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
     if (city) renderer.render({ city, selectedBuildingId, buildMode, editMode })
   }, [renderer, city, selectedBuildingId, buildMode, editMode])
 
-  // Enquanto há construções em andamento, redesenha periodicamente para o contador decrementar.
+  // Enquanto há obras OU recrutamento em andamento, redesenha periodicamente p/ os contadores.
   useEffect(() => {
-    if (!city || city.pending.length === 0) return
+    if (!city || (city.pending.length === 0 && city.recruits.length === 0)) return
     const t = setInterval(() => renderer.render({ city, selectedBuildingId, buildMode, editMode }), 500)
     return () => clearInterval(t)
   }, [renderer, city, selectedBuildingId, buildMode, editMode])

@@ -88,7 +88,8 @@ function UpgradeSection({ city, b }: { city: City; b: Building }) {
 function RecruitSection({ city, barracksLevel }: { city: City; barracksLevel: number }) {
   const { t } = useTranslation()
   const { data: catalog } = useCatalog()
-  const { recruit } = useArmyActions(city.id)
+  const { recruit, cancelRecruit } = useArmyActions(city.id)
+  const now = useNow()
 
   if (!catalog) return null
   const used = city.troops.reduce((s, x) => s + x.count, 0) + city.recruits.reduce((s, x) => s + x.count, 0)
@@ -100,6 +101,24 @@ function RecruitSection({ city, barracksLevel }: { city: City; barracksLevel: nu
         <strong>{t('military.title')}</strong>
         <span style={{ fontSize: 12, color: '#9aa3b2' }}>{t('military.armyCap', { used, cap: city.army_cap })}</span>
       </div>
+
+      {/* Em treinamento (progresso + cancelar) */}
+      {city.recruits.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 12, color: '#9aa3b2', marginBottom: 4 }}>{t('military.training')}</div>
+          {city.recruits.map((r) => (
+            <div key={r.id} style={trainingRow}>
+              <span style={{ fontSize: 12 }}>
+                {r.count}× {t(`units.${r.unit_type}`)} · <span style={{ color: '#e0b04a' }}>⏳ {formatDuration(secondsUntil(r.finish_at, now))}</span>
+              </span>
+              <button onClick={() => cancelRecruit.mutate(r.id)} disabled={cancelRecruit.isPending} style={cancelMini} aria-label={t('selected.cancel')}>
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div style={unitGrid}>
         {catalog.units.map((u) => {
           const locked = barracksLevel < u.min_barracks_level
@@ -227,6 +246,28 @@ const thumb: CSSProperties = {
   width: '100%',
   aspectRatio: '1 / 1',
   borderRadius: 6,
+}
+
+const trainingRow: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: 8,
+  padding: '6px 8px',
+  marginBottom: 4,
+  background: '#1a1f2b',
+  border: '1px solid #2a3142',
+  borderRadius: 8,
+}
+
+const cancelMini: CSSProperties = {
+  padding: '2px 8px',
+  fontSize: 12,
+  borderRadius: 6,
+  border: '1px solid #7a4a4a',
+  background: '#3a2626',
+  color: '#fff',
+  cursor: 'pointer',
 }
 
 const btn: CSSProperties = {
