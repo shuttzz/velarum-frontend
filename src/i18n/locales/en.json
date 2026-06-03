@@ -27,6 +27,7 @@
   },
   "hud": {
     "era": "Era {{n}}",
+    "lvlAbbr": "Lv",
     "protectedTip": "Amount protected from raids. Anything above it can be looted."
   },
   "resources": {

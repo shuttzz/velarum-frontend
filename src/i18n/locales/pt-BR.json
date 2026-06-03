@@ -27,6 +27,7 @@
   },
   "hud": {
     "era": "Era {{n}}",
+    "lvlAbbr": "Nv",
     "protectedTip": "Parcela protegida contra saque. O excedente acima disso é saqueável."
   },
   "resources": {

@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { IRenderer } from './renderer/IRenderer'
 import { useCity } from '../queries/useCity'
 import { useCityActions } from '../queries/useGameMutations'
@@ -15,6 +16,16 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
   const buildMode = useGameUIStore((s) => s.buildMode)
   const editMode = useGameUIStore((s) => s.editMode)
   const actions = useCityActions(cityId)
+  const { t } = useTranslation()
+
+  // Nomes traduzidos por tipo (texto do tile consistente com o nome real) + abreviação de nível.
+  const names = useMemo(() => {
+    const m: Record<string, string> = {}
+    for (const b of city?.buildings ?? []) m[b.type] = t(`buildings.${b.type}`)
+    for (const p of city?.pending ?? []) m[p.building_type] = t(`buildings.${p.building_type}`)
+    return m
+  }, [city, t])
+  const lvlAbbr = t('hud.lvlAbbr')
 
   // ref com o contexto atual para os handlers do renderer não verem estado obsoleto
   const ctxRef = useRef({ actions })
@@ -30,15 +41,15 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
   useResizeCanvas(canvasRef, renderer)
 
   useEffect(() => {
-    if (city) renderer.render({ city, selectedBuildingId, buildMode, editMode })
-  }, [renderer, city, selectedBuildingId, buildMode, editMode])
+    if (city) renderer.render({ city, selectedBuildingId, buildMode, editMode, names, lvlAbbr })
+  }, [renderer, city, selectedBuildingId, buildMode, editMode, names, lvlAbbr])
 
   // Enquanto há obras OU recrutamento em andamento, redesenha periodicamente p/ os contadores.
   useEffect(() => {
     if (!city || (city.pending.length === 0 && city.recruits.length === 0)) return
-    const t = setInterval(() => renderer.render({ city, selectedBuildingId, buildMode, editMode }), 500)
-    return () => clearInterval(t)
-  }, [renderer, city, selectedBuildingId, buildMode, editMode])
+    const id = setInterval(() => renderer.render({ city, selectedBuildingId, buildMode, editMode, names, lvlAbbr }), 500)
+    return () => clearInterval(id)
+  }, [renderer, city, selectedBuildingId, buildMode, editMode, names, lvlAbbr])
 
   useEffect(() => {
     const onBuilding = (id: string) => useGameUIStore.getState().selectBuilding(id)

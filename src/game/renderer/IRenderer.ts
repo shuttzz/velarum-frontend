@@ -7,6 +7,8 @@ export type RenderState = {
   selectedBuildingId: string | null
   buildMode: BuildMode
   editMode: boolean // em edição, o edifício selecionado pode ser movido (fantasma segue o mouse)
+  names: Record<string, string> // nome traduzido por building key (texto consistente no tile)
+  lvlAbbr: string // abreviação de "nível" (ex.: "Nv"/"Lv")
 }
 
 export type RendererEvents = {

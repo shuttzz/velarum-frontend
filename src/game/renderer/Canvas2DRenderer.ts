@@ -10,15 +10,6 @@ const TYPE_COLOR: Record<string, string> = {
   celeiro_de_argila: '#b5651d',
   canteiro_de_almas: '#9c3b3b',
 }
-const SHORT: Record<string, string> = {
-  lar_do_cla: 'Lar',
-  viveiro_de_pedra: 'Viveiro',
-  fogueira_comunal: 'Fogo',
-  pedra_da_memoria: 'Memória',
-  celeiro_de_argila: 'Celeiro',
-  canteiro_de_almas: 'Quartel',
-}
-
 const MARGIN = 48 // espaço entre a grade e as bordas da tela
 const MIN_CELL = 20
 
@@ -197,11 +188,24 @@ export class Canvas2DRenderer implements IRenderer {
         roundRect(ctx, x + 2, y + 2, w - 4, h - 4, 10)
         ctx.stroke()
       }
+      // Nome real (traduzido) CENTRALIZADO, com a fonte encolhendo p/ caber; nível abaixo.
+      const cx = x + w / 2
+      const cy = y + h / 2
+      const maxW = w - 2 * pad - 6
+      const name = st.names[b.type] ?? b.type
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      let nf = font
+      ctx.font = `${nf}px system-ui, sans-serif`
+      while (nf > 8 && ctx.measureText(name).width > maxW) {
+        nf--
+        ctx.font = `${nf}px system-ui, sans-serif`
+      }
       ctx.fillStyle = '#ffffff'
-      ctx.font = `${font}px system-ui, sans-serif`
-      ctx.textBaseline = 'top'
-      ctx.fillText(SHORT[b.type] ?? b.type, x + pad + 4, y + pad + 4)
-      ctx.fillText('N' + b.level, x + pad + 4, y + pad + 6 + font)
+      ctx.fillText(name, cx, cy - nf * 0.55, maxW)
+      ctx.fillStyle = '#cdd4e0'
+      ctx.font = `${Math.max(9, Math.floor(nf * 0.82))}px system-ui, sans-serif`
+      ctx.fillText(`${st.lvlAbbr} ${b.level}`, cx, cy + nf * 0.7, maxW)
 
       // Contador de treinamento sobre o Canteiro de Almas, se há recrutamento na fila.
       if (b.type === 'canteiro_de_almas' && recruitSoonest > 0) {
@@ -209,8 +213,10 @@ export class Canvas2DRenderer implements IRenderer {
         const txt = '⚔ ' + (rem >= 60 ? `${Math.floor(rem / 60)}m${String(rem % 60).padStart(2, '0')}s` : `${rem}s`)
         ctx.fillStyle = '#e0b04a'
         ctx.font = `${smallFont}px system-ui, sans-serif`
-        ctx.fillText(txt, x + pad + 4, y + h - pad - smallFont - 4)
+        ctx.fillText(txt, cx, y + h - pad - smallFont, maxW)
       }
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
     }
 
     // Construções/upgrades em andamento: placeholder "em obras" + contador regressivo (UTC).
