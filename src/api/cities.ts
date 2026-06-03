@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { BuildQueued, City } from '../types/game'
+import type { BuildQueued, City, March, Province } from '../types/game'
 
 export const citiesApi = {
   getCity: (cityId: string) => api.get<City>(`/cities/${cityId}`),
@@ -12,4 +12,12 @@ export const citiesApi = {
 
   move: (cityId: string, buildingId: string, body: { x: number; y: number }) =>
     api.postVoid(`/cities/${cityId}/buildings/${buildingId}/move`, body),
+
+  recruit: (cityId: string, body: { unit_type: string; count: number }) =>
+    api.post<{ id: string }>(`/cities/${cityId}/recruit`, body),
+
+  getProvinces: (cityId: string) => api.get<Province[]>(`/cities/${cityId}/provinces`),
+
+  march: (cityId: string, body: { province_id: string; troops: Record<string, number> }) =>
+    api.post<March>(`/cities/${cityId}/march`, body),
 }

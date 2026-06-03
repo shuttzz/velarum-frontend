@@ -32,6 +32,7 @@ const catalog: Catalog = {
     { ...fogueira, key: 'lar_do_cla', name: 'Lar do Clã', requires: [] },
     fogueira,
   ],
+  units: [],
 }
 
 function city(partial: Partial<City>): City {
@@ -43,10 +44,16 @@ function city(partial: Partial<City>): City {
     resources: { matter: 0, energy: 0, knowledge: 0 },
     rate: { matter: 0, energy: 0, knowledge: 0 },
     capacity: { matter: 500, energy: 500, knowledge: 200 },
+    coord_x: 0,
+    coord_y: 0,
     grid_w: 8,
     grid_h: 6,
     buildings: [],
     pending: [],
+    troops: [],
+    recruits: [],
+    army_cap: 0,
+    marches: [],
     server_now: '2026-06-02T00:00:00Z',
     ...partial,
   }

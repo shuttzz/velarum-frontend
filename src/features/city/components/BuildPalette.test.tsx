@@ -30,6 +30,7 @@ const catalog: Catalog = {
     def({ key: 'celeiro_de_argila', name: 'Celeiro de Argila' }),
     def({ key: 'fogueira_comunal', name: 'Fogueira Comunal', requires: [{ building_key: 'lar_do_cla', level: 2 }] }),
   ],
+  units: [],
 }
 
 const city: City = {
@@ -40,10 +41,16 @@ const city: City = {
   resources: { matter: 1000, energy: 1000, knowledge: 1000 },
   rate: { matter: 0, energy: 0, knowledge: 0 },
   capacity: { matter: 1000, energy: 1000, knowledge: 1000 },
+  coord_x: 0,
+  coord_y: 0,
   grid_w: 8,
   grid_h: 6,
   buildings: [],
   pending: [],
+  troops: [],
+  recruits: [],
+  army_cap: 0,
+  marches: [],
   server_now: '2026-06-02T00:00:00Z',
 }
 

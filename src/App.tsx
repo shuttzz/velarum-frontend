@@ -2,8 +2,10 @@ import { useEffect, type CSSProperties, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CityView } from './features/city/CityView'
+import { WorldMapView } from './features/world/WorldMapView'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { AccountControls } from './components/AccountControls'
+import { useGameUIStore } from './stores/useGameUIStore'
 import { useEnterWorld } from './queries/useEnterWorld'
 import { useMe } from './queries/useAuth'
 import { errorMessage } from './api/client'
@@ -35,13 +37,16 @@ function Game({ account }: { account: Account }) {
   const { t } = useTranslation()
   const qc = useQueryClient()
   const enter = useEnterWorld()
+  const view = useGameUIStore((s) => s.view)
 
   // Semeia o cache da cidade com o que a entrada já trouxe (evita um GET extra/flash).
   useEffect(() => {
     if (enter.data) qc.setQueryData(queryKeys.city(enter.data.id), enter.data)
   }, [enter.data, qc])
 
-  if (enter.data) return <CityView cityId={enter.data.id} />
+  if (enter.data) {
+    return view === 'map' ? <WorldMapView cityId={enter.data.id} /> : <CityView cityId={enter.data.id} />
+  }
 
   // Falha ao entrar: nova tentativa + controles de conta (sair/idioma).
   if (enter.isError) {

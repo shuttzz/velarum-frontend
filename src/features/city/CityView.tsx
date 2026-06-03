@@ -7,7 +7,9 @@ import { useCity } from '../../queries/useCity'
 import { ResourceBar } from './components/ResourceBar'
 import { BuildPalette } from './components/BuildPalette'
 import { SelectedPanel } from './components/SelectedPanel'
+import { ArmyPanel } from './components/ArmyPanel'
 import { AccountControls } from '../../components/AccountControls'
+import { ViewNav } from '../../components/ViewNav'
 
 // Tela da cidade: canvas fullscreen + HUD sobreposto. O renderer é injetado (Canvas2D hoje,
 // PixiJS depois — mesma interface IRenderer).
@@ -22,6 +24,8 @@ export function CityView({ cityId }: { cityId: string }) {
         {city && <ResourceBar city={city} />}
         {city && <BuildPalette city={city} />}
         {city && <SelectedPanel city={city} />}
+        {city && <ArmyPanel city={city} />}
+        <ViewNav />
         <AccountControls style={{ position: 'absolute', bottom: 12, right: 16, pointerEvents: 'auto' }} />
       </HUDLayer>
     </GameLayout>

@@ -65,7 +65,57 @@
     "pira_dos_guerreiros": "Warriors' Pyre",
     "marco_primeiros_fogos": "Monument of First Fires"
   },
+  "nav": {
+    "toMap": "🗺 Map",
+    "toCity": "🏛 City"
+  },
+  "units": {
+    "lanceiro": "Spearman",
+    "arqueiro": "Archer"
+  },
+  "military": {
+    "title": "Army",
+    "garrison": "Garrison",
+    "empty": "No troops.",
+    "armyCap": "Capacity {{used}}/{{cap}}",
+    "recruit": "Recruit",
+    "recruiting": "Recruiting…",
+    "marching": "{{count}} marching",
+    "perUnit": "{{time}}/unit"
+  },
+  "map": {
+    "title": "World Map",
+    "yourCity": "Your city",
+    "conquered": "Conquered",
+    "unconquered": "Unconquered",
+    "defense": "Defense",
+    "reward": "Reward",
+    "attack": "Attack",
+    "attacking": "Sending…",
+    "selectTroops": "Select troops to send",
+    "noArmy": "Recruit troops in the city first.",
+    "outbound": "Marching… arrives in {{time}}",
+    "returning": "Returning… arrives in {{time}}",
+    "victory": "Victory!",
+    "defeat": "Defeat",
+    "send": "Send army"
+  },
+  "provinces": {
+    "clareira_dos_ecos": "Glade of Echoes",
+    "pedreira_selvagem": "Wild Quarry",
+    "bosque_cinza": "Grey Woods",
+    "ribeira_morta": "Dead Brook",
+    "colina_dos_vigias": "Watchers' Hill",
+    "ruina_primeva": "Primeval Ruin"
+  },
   "errors": {
+    "no_barracks": "Build the Soul Cradle to recruit.",
+    "army_cap_exceeded": "Army cap exceeded.",
+    "unit_unknown": "Unknown unit.",
+    "bad_count": "Invalid amount.",
+    "no_troops": "Not enough troops in the garrison.",
+    "province_conquered": "Province already conquered.",
+    "province_not_found": "Province not found.",
     "invalid_input": "Invalid data.",
     "weak_password": "Password too short (minimum 8 characters).",
     "email_taken": "Email already registered.",

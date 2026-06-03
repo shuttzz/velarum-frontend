@@ -65,7 +65,57 @@
     "pira_dos_guerreiros": "Pira dos Guerreiros",
     "marco_primeiros_fogos": "Marco dos Primeiros Fogos"
   },
+  "nav": {
+    "toMap": "🗺 Mapa",
+    "toCity": "🏛 Cidade"
+  },
+  "units": {
+    "lanceiro": "Lanceiro",
+    "arqueiro": "Arqueiro"
+  },
+  "military": {
+    "title": "Exército",
+    "garrison": "Guarnição",
+    "empty": "Sem tropas.",
+    "armyCap": "Capacidade {{used}}/{{cap}}",
+    "recruit": "Recrutar",
+    "recruiting": "Recrutando…",
+    "marching": "{{count}} em marcha",
+    "perUnit": "{{time}}/un"
+  },
+  "map": {
+    "title": "Mapa do Mundo",
+    "yourCity": "Sua cidade",
+    "conquered": "Conquistada",
+    "unconquered": "Não conquistada",
+    "defense": "Defesa",
+    "reward": "Recompensa",
+    "attack": "Atacar",
+    "attacking": "Enviando…",
+    "selectTroops": "Selecione as tropas para enviar",
+    "noArmy": "Recrute tropas na cidade primeiro.",
+    "outbound": "Marchando… chega em {{time}}",
+    "returning": "Voltando… chega em {{time}}",
+    "victory": "Vitória!",
+    "defeat": "Derrota",
+    "send": "Enviar exército"
+  },
+  "provinces": {
+    "clareira_dos_ecos": "Clareira dos Ecos",
+    "pedreira_selvagem": "Pedreira Selvagem",
+    "bosque_cinza": "Bosque Cinza",
+    "ribeira_morta": "Ribeira Morta",
+    "colina_dos_vigias": "Colina dos Vigias",
+    "ruina_primeva": "Ruína Primeva"
+  },
   "errors": {
+    "no_barracks": "Construa o Canteiro de Almas para recrutar.",
+    "army_cap_exceeded": "Teto de exército excedido.",
+    "unit_unknown": "Unidade desconhecida.",
+    "bad_count": "Quantidade inválida.",
+    "no_troops": "Tropas insuficientes na guarnição.",
+    "province_conquered": "Província já conquistada.",
+    "province_not_found": "Província não encontrada.",
     "invalid_input": "Dados inválidos.",
     "weak_password": "Senha muito curta (mínimo 8 caracteres).",
     "email_taken": "Email já cadastrado.",

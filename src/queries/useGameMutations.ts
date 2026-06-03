@@ -29,3 +29,22 @@ export function useCityActions(cityId: string) {
 
   return { construct, upgrade, move }
 }
+
+// Ações militares: recrutar (cidade) e marchar (mapa). Marchar afeta cidade + províncias.
+export function useArmyActions(cityId: string) {
+  const qc = useQueryClient()
+
+  const recruit = useMutation({
+    mutationFn: (p: { unit_type: string; count: number }) => citiesApi.recruit(cityId, p),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.city(cityId) }),
+  })
+  const march = useMutation({
+    mutationFn: (p: { province_id: string; troops: Record<string, number> }) => citiesApi.march(cityId, p),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.city(cityId) })
+      void qc.invalidateQueries({ queryKey: queryKeys.provinces(cityId) })
+    },
+  })
+
+  return { recruit, march }
+}
