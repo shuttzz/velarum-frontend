@@ -10,6 +10,7 @@ import { useNow, secondsUntil } from '../../lib/useNow'
 import { ResourceBar } from '../city/components/ResourceBar'
 import { AccountControls } from '../../components/AccountControls'
 import { ViewNav } from '../../components/ViewNav'
+import { useGameUIStore } from '../../stores/useGameUIStore'
 
 const HEX = 62 // raio do hexágono (px)
 
@@ -162,19 +163,40 @@ function Hex({
 
 function ProvincePanel({ city, province }: { city: City; province: Province }) {
   const { t } = useTranslation()
-  const { march } = useArmyActions(city.id)
+  const { march, startBattle } = useArmyActions(city.id)
+  const openBattle = useGameUIStore((s) => s.openBattle)
   const now = useNow()
   const active = city.marches.find((m) => m.province_id === province.id && m.status !== 'done')
   const [send, setSend] = useState<Record<string, number>>({})
 
-  function attack() {
+  function selectedTroops(): Record<string, number> {
     const troops: Record<string, number> = {}
     for (const [k, v] of Object.entries(send)) if (v > 0) troops[k] = v
+    return troops
+  }
+
+  function attack() {
+    const troops = selectedTroops()
     if (Object.keys(troops).length === 0) return
     march.mutate({ province_id: province.id, troops }, { onSuccess: () => setSend({}) })
   }
 
+  function fight() {
+    const troops = selectedTroops()
+    if (Object.keys(troops).length === 0) return
+    startBattle.mutate(
+      { province_id: province.id, troops },
+      {
+        onSuccess: (view) => {
+          setSend({})
+          openBattle(view.id)
+        },
+      },
+    )
+  }
+
   const totalSelected = Object.values(send).reduce((a, b) => a + b, 0)
+  const busy = march.isPending || startBattle.isPending
 
   return (
     <div style={panel}>
@@ -226,10 +248,18 @@ function ProvincePanel({ city, province }: { city: City; province: Province }) {
               />
             </div>
           ))}
-          <button onClick={attack} disabled={march.isPending || totalSelected === 0} style={attackBtn}>
+          <button onClick={attack} disabled={busy || totalSelected === 0} style={attackBtn}>
             {march.isPending ? t('map.attacking') : t('map.send')}
           </button>
-          {march.isError && <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>{errorMessage(march.error)}</p>}
+          <button onClick={fight} disabled={busy || totalSelected === 0} style={battleBtn}>
+            {startBattle.isPending ? t('battle.starting') : t('battle.fight')}
+          </button>
+          <p style={{ fontSize: 11, color: '#6b7280', margin: '6px 0 0' }}>{t('battle.fightHint')}</p>
+          {(march.isError || startBattle.isError) && (
+            <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>
+              {errorMessage(march.error ?? startBattle.error)}
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -291,6 +321,18 @@ const attackBtn: CSSProperties = {
   borderRadius: 8,
   border: '1px solid #6c8ebf',
   background: '#2c3a5a',
+  color: '#fff',
+  cursor: 'pointer',
+}
+
+const battleBtn: CSSProperties = {
+  marginTop: 6,
+  width: '100%',
+  padding: '8px',
+  fontSize: 14,
+  borderRadius: 8,
+  border: '1px solid #9f5a5a',
+  background: '#4a2c2c',
   color: '#fff',
   cursor: 'pointer',
 }

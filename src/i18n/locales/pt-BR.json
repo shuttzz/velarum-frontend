@@ -124,6 +124,18 @@
     "defeat": "Derrota",
     "send": "Enviar exército"
   },
+  "battle": {
+    "title": "Batalha Tática",
+    "fight": "⚔ Batalha tática",
+    "fightHint": "Controle suas tropas turno a turno num tabuleiro hexagonal.",
+    "starting": "Iniciando…",
+    "round": "Rodada {{n}}/{{max}}",
+    "endTurn": "Encerrar turno",
+    "resolving": "Resolvendo…",
+    "victory": "Vitória!",
+    "defeat": "Derrota",
+    "backToMap": "Voltar ao mapa"
+  },
   "reports": {
     "title": "Relatórios",
     "empty": "Nenhum relatório ainda.",
@@ -148,6 +160,9 @@
     "no_troops": "Tropas insuficientes na guarnição.",
     "province_conquered": "Província já conquistada.",
     "province_not_found": "Província não encontrada.",
+    "battle_active": "Já há uma batalha em andamento.",
+    "battle_not_found": "Batalha não encontrada.",
+    "invalid_action": "Ação inválida na batalha.",
     "invalid_input": "Dados inválidos.",
     "weak_password": "Senha muito curta (mínimo 8 caracteres).",
     "email_taken": "Email já cadastrado.",

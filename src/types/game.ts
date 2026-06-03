@@ -53,7 +53,46 @@ export type City = {
   recruits: RecruitQueued[]
   army_cap: number
   marches: March[]
+  active_battle_id: string
   server_now: string
+}
+
+// Batalha tática (estado autoritativo do servidor; render no cliente). Espelha
+// internal/domain/battle.Battle + city.BattleView do backend.
+export type Side = 'attacker' | 'defender'
+
+export type BattleHex = { q: number; r: number }
+
+export type BattleUnit = {
+  id: string
+  owner: Side
+  key: string
+  hp: number
+  hp_per: number
+  attack: number
+  defense: number
+  move: number
+  range: number
+  pos: BattleHex
+}
+
+export type Battle = {
+  w: number
+  h: number
+  units: BattleUnit[]
+  turn: Side
+  round: number
+  max_rounds: number
+  acted: Record<string, boolean>
+  over: boolean
+  winner: Side
+}
+
+export type BattleView = {
+  id: string
+  province_id: string
+  status: 'active' | 'resolved'
+  state: Battle
 }
 
 export type BattleReport = {

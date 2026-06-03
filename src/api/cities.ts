@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { BuildQueued, City, March, Province, Report } from '../types/game'
+import type { BattleHex, BattleView, BuildQueued, City, March, Province, Report } from '../types/game'
 
 export const citiesApi = {
   getCity: (cityId: string) => api.get<City>(`/cities/${cityId}`),
@@ -30,4 +30,17 @@ export const citiesApi = {
   getReports: (cityId: string) => api.get<Report[]>(`/cities/${cityId}/reports`),
 
   markReportsRead: (cityId: string) => api.postVoid(`/cities/${cityId}/reports/read`, {}),
+
+  // Batalha tática: inicia (instanciada contra a província), consulta e age (mover/atacar/encerrar turno).
+  startBattle: (cityId: string, provinceId: string, troops: Record<string, number>) =>
+    api.post<BattleView>(`/cities/${cityId}/provinces/${provinceId}/battle`, { troops }),
+
+  getBattle: (cityId: string, battleId: string) =>
+    api.get<BattleView>(`/cities/${cityId}/battles/${battleId}`),
+
+  battleAct: (cityId: string, battleId: string, body: { unit_id: string; move_to?: BattleHex; target_id?: string }) =>
+    api.post<BattleView>(`/cities/${cityId}/battles/${battleId}/act`, body),
+
+  battleEndTurn: (cityId: string, battleId: string) =>
+    api.post<BattleView>(`/cities/${cityId}/battles/${battleId}/end-turn`, {}),
 }

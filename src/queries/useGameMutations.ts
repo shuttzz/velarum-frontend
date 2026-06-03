@@ -116,6 +116,16 @@ export function useArmyActions(cityId: string) {
       void qc.invalidateQueries({ queryKey: queryKeys.provinces(cityId) })
     },
   })
+  // Batalha tática: inicia a batalha (debita a guarnição no servidor) contra a província. A
+  // resposta traz a BattleView; o chamador abre o overlay com view.id.
+  const startBattle = useMutation({
+    mutationFn: (p: { province_id: string; troops: Record<string, number> }) =>
+      citiesApi.startBattle(cityId, p.province_id, p.troops),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.city(cityId) })
+      void qc.invalidateQueries({ queryKey: queryKeys.provinces(cityId) })
+    },
+  })
   // Cancelar recrutamento: otimista — remove da fila e devolve o custo (custo unitário × count).
   const cancelRecruit = useMutation<void, unknown, string, { prev?: City }>({
     mutationFn: (recruitId) => citiesApi.cancelRecruit(cityId, recruitId),
@@ -144,5 +154,5 @@ export function useArmyActions(cityId: string) {
     onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.city(cityId) }),
   })
 
-  return { recruit, march, cancelRecruit }
+  return { recruit, march, startBattle, cancelRecruit }
 }

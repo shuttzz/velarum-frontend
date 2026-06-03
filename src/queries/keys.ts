@@ -5,4 +5,5 @@ export const queryKeys = {
   me: ['auth', 'me'] as const,
   provinces: (cityId: string) => ['provinces', cityId] as const,
   reports: (cityId: string) => ['reports', cityId] as const,
+  battle: (cityId: string, battleId: string) => ['battle', cityId, battleId] as const,
 }

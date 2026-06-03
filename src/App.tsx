@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/reac
 import { useTranslation } from 'react-i18next'
 import { CityView } from './features/city/CityView'
 import { WorldMapView } from './features/world/WorldMapView'
+import { BattleView } from './features/battle/BattleView'
 import { ReportsOverlay } from './features/reports/ReportsOverlay'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { AccountControls } from './components/AccountControls'
@@ -40,6 +41,8 @@ function Game({ account }: { account: Account }) {
   const qc = useQueryClient()
   const enter = useEnterWorld()
   const view = useGameUIStore((s) => s.view)
+  const battleId = useGameUIStore((s) => s.battleId)
+  const openBattle = useGameUIStore((s) => s.openBattle)
 
   // Refetch automático quando uma tarefa conclui (contador zera) — em vez de esperar o poll.
   useCompletionRefetch(enter.data?.id ?? null)
@@ -49,11 +52,18 @@ function Game({ account }: { account: Account }) {
     if (enter.data) qc.setQueryData(queryKeys.city(enter.data.id), enter.data)
   }, [enter.data, qc])
 
+  // Retoma uma batalha em andamento ao recarregar a página (o servidor é a fonte da verdade).
+  const activeBattleId = enter.data?.active_battle_id
+  useEffect(() => {
+    if (activeBattleId && !battleId) openBattle(activeBattleId)
+  }, [activeBattleId, battleId, openBattle])
+
   if (enter.data) {
     const cityId = enter.data.id
     return (
       <>
         {view === 'map' ? <WorldMapView cityId={cityId} /> : <CityView cityId={cityId} />}
+        {battleId && <BattleView cityId={cityId} />}
         <ReportsOverlay cityId={cityId} />
       </>
     )

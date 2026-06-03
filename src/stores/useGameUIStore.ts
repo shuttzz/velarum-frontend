@@ -13,12 +13,15 @@ interface GameUIState {
   buildMode: BuildMode
   view: GameView
   editMode: boolean // modo de edição de layout: só aqui é possível MOVER edifícios
+  battleId: string | null // batalha tática aberta (overlay sobre o mapa)
   selectBuilding: (id: string | null) => void
   selectPending: (id: string | null) => void
   startPlacing: (buildingType: string) => void
   cancel: () => void
   setView: (view: GameView) => void
   toggleEdit: () => void
+  openBattle: (id: string) => void
+  closeBattle: () => void
 }
 
 export const useGameUIStore = create<GameUIState>((set) => ({
@@ -27,6 +30,7 @@ export const useGameUIStore = create<GameUIState>((set) => ({
   buildMode: { type: 'idle' },
   view: 'city',
   editMode: false,
+  battleId: null,
   selectBuilding: (id) => set({ selectedBuildingId: id, selectedPendingId: null, buildMode: { type: 'idle' } }),
   selectPending: (id) => set({ selectedPendingId: id, selectedBuildingId: null, buildMode: { type: 'idle' } }),
   // Construir sai do modo edição (são interações distintas).
@@ -37,4 +41,7 @@ export const useGameUIStore = create<GameUIState>((set) => ({
   // Alterna o modo de edição; ao entrar/sair, limpa seleção e modo de construção.
   toggleEdit: () =>
     set((s) => ({ editMode: !s.editMode, selectedBuildingId: null, selectedPendingId: null, buildMode: { type: 'idle' } })),
+  // Abre a batalha tática (overlay); força a vista de mapa por baixo.
+  openBattle: (id) => set({ battleId: id, view: 'map' }),
+  closeBattle: () => set({ battleId: null }),
 }))
