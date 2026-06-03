@@ -1,5 +1,6 @@
 import type { IRenderer, RenderState, RendererEvents } from './IRenderer'
 import { serverNow } from '../../lib/serverClock'
+import { buildingIcon } from '../../features/city/buildingVisual'
 
 // Cores placeholder por tipo de edifício (no lugar de sprites). Trocar por imagens/Pixi depois.
 const TYPE_COLOR: Record<string, string> = {
@@ -28,6 +29,8 @@ export class Canvas2DRenderer implements IRenderer {
   private cellHandlers = new Set<RendererEvents['cellClick']>()
   private buildingHandlers = new Set<RendererEvents['buildingClick']>()
   private pendingHandlers = new Set<RendererEvents['pendingClick']>()
+  private hoverHandlers = new Set<RendererEvents['hover']>()
+  private lastHoverId: string | null = null
 
   mount(canvas: HTMLCanvasElement): void {
     this.canvas = canvas
@@ -63,12 +66,14 @@ export class Canvas2DRenderer implements IRenderer {
   on<K extends keyof RendererEvents>(event: K, handler: RendererEvents[K]): void {
     if (event === 'cellClick') this.cellHandlers.add(handler as unknown as RendererEvents['cellClick'])
     else if (event === 'pendingClick') this.pendingHandlers.add(handler as unknown as RendererEvents['pendingClick'])
+    else if (event === 'hover') this.hoverHandlers.add(handler as unknown as RendererEvents['hover'])
     else this.buildingHandlers.add(handler as unknown as RendererEvents['buildingClick'])
   }
 
   off<K extends keyof RendererEvents>(event: K, handler: RendererEvents[K]): void {
     if (event === 'cellClick') this.cellHandlers.delete(handler as unknown as RendererEvents['cellClick'])
     else if (event === 'pendingClick') this.pendingHandlers.delete(handler as unknown as RendererEvents['pendingClick'])
+    else if (event === 'hover') this.hoverHandlers.delete(handler as unknown as RendererEvents['hover'])
     else this.buildingHandlers.delete(handler as unknown as RendererEvents['buildingClick'])
   }
 
@@ -103,6 +108,18 @@ export class Canvas2DRenderer implements IRenderer {
     const st = this.state
     const canvas = this.canvas
     if (!st || !canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const cgx = Math.floor((e.clientX - rect.left - this.offX) / this.cell)
+    const cgy = Math.floor((e.clientY - rect.top - this.offY) / this.cell)
+
+    // Hover sobre edifício (sempre, p/ tooltip do nome): emite quando muda o edifício sob o cursor.
+    const hovered = st.city.buildings.find((b) => cgx >= b.x && cgx < b.x + b.w && cgy >= b.y && cgy < b.y + b.h)
+    const hoverId = hovered ? hovered.id : null
+    if (hoverId !== this.lastHoverId) {
+      this.lastHoverId = hoverId
+      this.hoverHandlers.forEach((fn) => fn(hoverId, e.clientX, e.clientY))
+    }
+
     const interactive = st.buildMode.type === 'placing' || (st.editMode && st.selectedBuildingId !== null)
     if (!interactive) {
       if (this.hover) {
@@ -111,9 +128,8 @@ export class Canvas2DRenderer implements IRenderer {
       }
       return
     }
-    const rect = canvas.getBoundingClientRect()
-    const gx = Math.floor((e.clientX - rect.left - this.offX) / this.cell)
-    const gy = Math.floor((e.clientY - rect.top - this.offY) / this.cell)
+    const gx = cgx
+    const gy = cgy
     const inside = gx >= 0 && gy >= 0 && gx < st.city.grid_w && gy < st.city.grid_h
     const next = inside ? { x: gx, y: gy } : null
     if ((next?.x ?? -1) !== (this.hover?.x ?? -1) || (next?.y ?? -1) !== (this.hover?.y ?? -1)) {
@@ -123,6 +139,10 @@ export class Canvas2DRenderer implements IRenderer {
   }
 
   private onLeave = () => {
+    if (this.lastHoverId !== null) {
+      this.lastHoverId = null
+      this.hoverHandlers.forEach((fn) => fn(null, 0, 0))
+    }
     if (this.hover) {
       this.hover = null
       this.draw()
@@ -174,6 +194,7 @@ export class Canvas2DRenderer implements IRenderer {
     // Recrutamento em andamento (feedback ambiente sobre o Canteiro): contador do mais próximo.
     const recruitSoonest =
       st.city.recruits.length > 0 ? Math.min(...st.city.recruits.map((r) => Date.parse(r.finish_at))) : 0
+
     for (const b of buildings) {
       const x = b.x * cell
       const y = b.y * cell
@@ -188,24 +209,18 @@ export class Canvas2DRenderer implements IRenderer {
         roundRect(ctx, x + 2, y + 2, w - 4, h - 4, 10)
         ctx.stroke()
       }
-      // Nome real (traduzido) CENTRALIZADO, com a fonte encolhendo p/ caber; nível abaixo.
+      // Ícone (placeholder do sprite) centralizado + nível abaixo. O NOME vai no tooltip (hover).
       const cx = x + w / 2
       const cy = y + h / 2
       const maxW = w - 2 * pad - 6
-      const name = st.names[b.type] ?? b.type
+      const iconSize = Math.max(16, Math.floor(Math.min(w, h) * 0.42))
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      let nf = font
-      ctx.font = `${nf}px system-ui, sans-serif`
-      while (nf > 8 && ctx.measureText(name).width > maxW) {
-        nf--
-        ctx.font = `${nf}px system-ui, sans-serif`
-      }
-      ctx.fillStyle = '#ffffff'
-      ctx.fillText(name, cx, cy - nf * 0.55, maxW)
-      ctx.fillStyle = '#cdd4e0'
-      ctx.font = `${Math.max(9, Math.floor(nf * 0.82))}px system-ui, sans-serif`
-      ctx.fillText(`${st.lvlAbbr} ${b.level}`, cx, cy + nf * 0.7, maxW)
+      ctx.font = `${iconSize}px system-ui, sans-serif`
+      ctx.fillText(buildingIcon(b.type), cx, cy - font * 0.4)
+      ctx.fillStyle = '#e6e6e6'
+      ctx.font = `${font}px system-ui, sans-serif`
+      ctx.fillText(`${st.lvlAbbr} ${b.level}`, cx, cy + iconSize * 0.55)
 
       // Contador de treinamento sobre o Canteiro de Almas, se há recrutamento na fila.
       if (b.type === 'canteiro_de_almas' && recruitSoonest > 0) {

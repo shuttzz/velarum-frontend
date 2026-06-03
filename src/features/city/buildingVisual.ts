@@ -28,3 +28,23 @@ const UNIT_COLORS: Record<string, string> = {
 export function unitColor(key: string): string {
   return UNIT_COLORS[key] ?? '#555b6e'
 }
+
+// Ícone (emoji) placeholder por edifício, exibido no tile no lugar do nome (até entrar o sprite).
+const ICONS: Record<string, string> = {
+  lar_do_cla: '🏛',
+  viveiro_de_pedra: '⛏',
+  fogueira_comunal: '🔥',
+  pedra_da_memoria: '📜',
+  celeiro_de_argila: '📦',
+  canteiro_de_almas: '⚔',
+  altar_das_fogueiras: '🕯',
+  torre_do_vigia: '🗼',
+  circulo_runico: '🔮',
+  praca_do_conselho: '⚖',
+  pira_dos_guerreiros: '🛡',
+  marco_primeiros_fogos: '🏆',
+}
+
+export function buildingIcon(key: string): string {
+  return ICONS[key] ?? '🏗'
+}

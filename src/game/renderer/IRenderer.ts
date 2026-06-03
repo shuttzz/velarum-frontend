@@ -7,7 +7,6 @@ export type RenderState = {
   selectedBuildingId: string | null
   buildMode: BuildMode
   editMode: boolean // em edição, o edifício selecionado pode ser movido (fantasma segue o mouse)
-  names: Record<string, string> // nome traduzido por building key (texto consistente no tile)
   lvlAbbr: string // abreviação de "nível" (ex.: "Nv"/"Lv")
 }
 
@@ -15,6 +14,8 @@ export type RendererEvents = {
   cellClick: (x: number, y: number) => void
   buildingClick: (id: string) => void
   pendingClick: (buildId: string) => void // clique numa obra NOVA em andamento (build_queue id)
+  // hover sobre um edifício (id) ou nenhum (null), com a posição do cursor (viewport) p/ tooltip.
+  hover: (buildingId: string | null, x: number, y: number) => void
 }
 
 // Contrato do renderer da cidade. Hoje implementado em Canvas 2D; trocável por PixiJS
