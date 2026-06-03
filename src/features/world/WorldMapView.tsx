@@ -11,7 +11,7 @@ import { ResourceBar } from '../city/components/ResourceBar'
 import { AccountControls } from '../../components/AccountControls'
 import { ViewNav } from '../../components/ViewNav'
 
-const HEX = 54 // raio do hexágono (px)
+const HEX = 62 // raio do hexágono (px)
 
 // axialToPixel: coordenada hex axial (q,r) → pixel (pointy-top), cidade no centro (0,0).
 function axialToPixel(q: number, r: number) {
@@ -72,17 +72,31 @@ function HexMap({
   const activeProvinceIds = new Set(marches.filter((m) => m.status !== 'done').map((m) => m.province_id))
 
   return (
-    <svg viewBox="-185 -175 370 350" style={{ width: 'min(90vw, 760px)', height: 'auto', maxHeight: '74vh' }}>
+    <svg viewBox="-190 -172 380 344" style={{ width: 'min(92vw, 820px)', height: 'auto', maxHeight: '76vh' }}>
       {/* Cidade no centro */}
-      <Hex cx={0} cy={0} fill="#2c3a5a" stroke="#6c8ebf" strokeWidth={2}>
-        <tspan x={0} dy={0} style={cityLabel}>🏛</tspan>
-        <tspan x={0} dy={16} style={subLabel}>{cityName}</tspan>
-      </Hex>
+      <Hex
+        cx={0}
+        cy={0}
+        fill="#2c3a5a"
+        stroke="#6c8ebf"
+        strokeWidth={2}
+        lines={[
+          { text: '🏛', size: 20 },
+          { text: cityName, size: 11, color: '#cdd4e0' },
+        ]}
+      />
 
       {provinces.map((p) => {
         const { x, y } = axialToPixel(p.q, p.r)
         const conquered = p.status === 'conquered'
+        const marching = activeProvinceIds.has(p.id)
         const sel = p.id === selectedId
+        const lines: HexLine[] = [
+          { text: conquered ? '✔' : '⚔', size: 15, color: conquered ? '#7fd99b' : '#e09a9a' },
+          { text: t(`provinces.${p.name_key}`), size: 11, weight: 600 },
+        ]
+        if (marching) lines.push({ text: '⏳', size: 13, color: '#e0b04a' })
+        else if (!conquered) lines.push({ text: `${p.def_attack}/${p.def_hp}`, size: 10, color: '#9aa3b2' })
         return (
           <Hex
             key={p.id}
@@ -90,21 +104,20 @@ function HexMap({
             cy={y}
             fill={conquered ? '#244a33' : '#4a2c2c'}
             stroke={sel ? '#e0b04a' : conquered ? '#4a8f63' : '#9f5a5a'}
-            strokeWidth={sel ? 3.5 : 2}
+            strokeWidth={sel ? 4 : 2}
             onClick={() => onSelect(p.id)}
-          >
-            <tspan x={x} dy={-6} style={hexLabel}>{t(`provinces.${p.name_key}`)}</tspan>
-            <tspan x={x} dy={16} style={subLabel}>{conquered ? '✔' : `⚔ ${p.def_attack}/${p.def_hp}`}</tspan>
-            {activeProvinceIds.has(p.id) && (
-              <tspan x={x} dy={16} style={{ ...subLabel, fill: '#e0b04a' }}>⏳</tspan>
-            )}
-          </Hex>
+            lines={lines}
+          />
         )
       })}
     </svg>
   )
 }
 
+type HexLine = { text: string; size: number; color?: string; weight?: number }
+
+// Hex desenha o polígono + um bloco de texto CENTRALIZADO verticalmente (linhas empilhadas
+// em torno do centro do hex), evitando o amontoado de tspans alinhados pela base.
 function Hex({
   cx,
   cy,
@@ -112,7 +125,7 @@ function Hex({
   stroke,
   strokeWidth,
   onClick,
-  children,
+  lines,
 }: {
   cx: number
   cy: number
@@ -120,14 +133,29 @@ function Hex({
   stroke: string
   strokeWidth: number
   onClick?: () => void
-  children: React.ReactNode
+  lines: HexLine[]
 }) {
+  const lineH = 16
+  const startY = cy - ((lines.length - 1) * lineH) / 2
   return (
     <g onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
       <polygon points={hexPoints(cx, cy, HEX)} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
-      <text textAnchor="middle" dominantBaseline="middle" fill="#fff" fontFamily="system-ui, sans-serif">
-        {children}
-      </text>
+      {lines.map((ln, i) => (
+        <text
+          key={i}
+          x={cx}
+          y={startY + i * lineH}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontFamily="system-ui, sans-serif"
+          fontSize={ln.size}
+          fontWeight={ln.weight ?? 400}
+          fill={ln.color ?? '#fff'}
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          {ln.text}
+        </text>
+      ))}
     </g>
   )
 }
@@ -266,7 +294,3 @@ const attackBtn: CSSProperties = {
   color: '#fff',
   cursor: 'pointer',
 }
-
-const hexLabel = { fontSize: '12px', fontWeight: 600 } as const
-const subLabel = { fontSize: '11px', fill: '#cdd4e0' } as const
-const cityLabel = { fontSize: '20px' } as const

@@ -26,7 +26,8 @@
     "welcome": "Olá, {{name}}"
   },
   "hud": {
-    "era": "Era {{n}}"
+    "era": "Era {{n}}",
+    "protectedTip": "Parcela protegida contra saque. O excedente acima disso é saqueável."
   },
   "resources": {
     "matter": "Matéria",
@@ -81,7 +82,8 @@
     "recruit": "Recrutar",
     "recruiting": "Recrutando…",
     "marching": "{{count}} em marcha",
-    "perUnit": "{{time}}/un"
+    "perUnit": "{{time}}/un",
+    "locked": "🔒 Canteiro nv{{level}}"
   },
   "map": {
     "title": "Mapa do Mundo",
@@ -113,6 +115,7 @@
     "army_cap_exceeded": "Teto de exército excedido.",
     "unit_unknown": "Unidade desconhecida.",
     "bad_count": "Quantidade inválida.",
+    "unit_locked": "Unidade bloqueada — suba o Canteiro de Almas.",
     "no_troops": "Tropas insuficientes na guarnição.",
     "province_conquered": "Província já conquistada.",
     "province_not_found": "Província não encontrada.",

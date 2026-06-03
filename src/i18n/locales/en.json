@@ -26,7 +26,8 @@
     "welcome": "Hi, {{name}}"
   },
   "hud": {
-    "era": "Era {{n}}"
+    "era": "Era {{n}}",
+    "protectedTip": "Amount protected from raids. Anything above it can be looted."
   },
   "resources": {
     "matter": "Matter",
@@ -81,7 +82,8 @@
     "recruit": "Recruit",
     "recruiting": "Recruiting…",
     "marching": "{{count}} marching",
-    "perUnit": "{{time}}/unit"
+    "perUnit": "{{time}}/unit",
+    "locked": "🔒 Barracks lv{{level}}"
   },
   "map": {
     "title": "World Map",
@@ -113,6 +115,7 @@
     "army_cap_exceeded": "Army cap exceeded.",
     "unit_unknown": "Unknown unit.",
     "bad_count": "Invalid amount.",
+    "unit_locked": "Unit locked — upgrade the Soul Cradle.",
     "no_troops": "Not enough troops in the garrison.",
     "province_conquered": "Province already conquered.",
     "province_not_found": "Province not found.",

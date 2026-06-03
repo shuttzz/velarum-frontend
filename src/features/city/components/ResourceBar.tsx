@@ -34,11 +34,14 @@ export function ResourceBar({ city }: { city: City }) {
 }
 
 function Item({ label, v, cap, rate }: { label: string; v: number; cap: number; rate: number }) {
+  const { t } = useTranslation()
+  const unprotected = v > cap // excedente acima da parcela protegida = saqueável
   return (
     <div>
       <div style={{ fontSize: 12, color: '#9aa3b2' }}>{label}</div>
-      <div style={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }}>
-        {formatAmount(v)} <span style={{ fontSize: 11, color: '#6b7280' }}>/ {formatAmount(cap)}</span>
+      <div style={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }}>{formatAmount(v)}</div>
+      <div style={{ fontSize: 11, color: unprotected ? '#e0b04a' : '#6b7280' }} title={t('hud.protectedTip')}>
+        🛡 {formatAmount(cap)}
       </div>
       <div style={{ fontSize: 11, color: rate > 0 ? '#5ad17a' : '#6b7280' }}>+{rate}/h</div>
     </div>

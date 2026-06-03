@@ -21,6 +21,10 @@ export function ArmyPanel({ city }: { city: City }) {
     .filter((m) => m.status !== 'done')
     .reduce((s, m) => s + Object.values(m.troops).reduce((a, b) => a + b, 0), 0)
   const noBarracks = city.army_cap === 0
+  // Nível do Canteiro de Almas (para desbloqueio de unidades).
+  const barracksLevel = city.buildings
+    .filter((b) => b.type === 'canteiro_de_almas')
+    .reduce((m, b) => Math.max(m, b.level), 0)
 
   return (
     <div style={panel}>
@@ -35,17 +39,21 @@ export function ArmyPanel({ city }: { city: City }) {
         <>
           {/* Recrutamento por tipo de unidade */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
-            {catalog.units.map((u) => (
-              <UnitRow
-                key={u.key}
-                name={t(`units.${u.key}`)}
-                cost={u.cost}
-                time={formatDuration(u.recruit_time)}
-                affordable={canAfford(city.resources, u.cost)}
-                disabled={recruit.isPending || used >= city.army_cap}
-                onRecruit={(count) => recruit.mutate({ unit_type: u.key, count })}
-              />
-            ))}
+            {catalog.units.map((u) => {
+              const locked = barracksLevel < u.min_barracks_level
+              return (
+                <UnitRow
+                  key={u.key}
+                  name={t(`units.${u.key}`)}
+                  cost={u.cost}
+                  time={formatDuration(u.recruit_time)}
+                  affordable={canAfford(city.resources, u.cost)}
+                  disabled={recruit.isPending || used >= city.army_cap || locked}
+                  lockedNote={locked ? t('military.locked', { level: u.min_barracks_level }) : null}
+                  onRecruit={(count) => recruit.mutate({ unit_type: u.key, count })}
+                />
+              )
+            })}
           </div>
 
           {/* Guarnição atual */}
@@ -77,6 +85,7 @@ function UnitRow({
   time,
   affordable,
   disabled,
+  lockedNote,
   onRecruit,
 }: {
   name: string
@@ -84,16 +93,21 @@ function UnitRow({
   time: string
   affordable: boolean
   disabled: boolean
+  lockedNote: string | null
   onRecruit: (count: number) => void
 }) {
   const { t } = useTranslation()
   const [count, setCount] = useState(1)
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: lockedNote ? 0.6 : 1 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13 }}>{name}</div>
-        <div style={{ fontSize: 10, color: affordable ? '#9aa3b2' : '#e0884a' }}>
-          <CostLine amounts={cost} /> · ⏱ {t('military.perUnit', { time })}
+        <div style={{ fontSize: 10, color: lockedNote ? '#c2724a' : affordable ? '#9aa3b2' : '#e0884a' }}>
+          {lockedNote ?? (
+            <>
+              <CostLine amounts={cost} /> · ⏱ {t('military.perUnit', { time })}
+            </>
+          )}
         </div>
       </div>
       <input
@@ -101,6 +115,7 @@ function UnitRow({
         min={1}
         value={count}
         onChange={(e) => setCount(Math.max(1, Number(e.target.value) || 1))}
+        disabled={!!lockedNote}
         style={input}
       />
       <button onClick={() => onRecruit(count)} disabled={disabled} style={btn}>

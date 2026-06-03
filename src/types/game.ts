@@ -103,6 +103,7 @@ export type CatalogUnit = {
   hp: number
   cost: Amounts
   recruit_time: number
+  min_barracks_level: number
   era: number
 }
 
