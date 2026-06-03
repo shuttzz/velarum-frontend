@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Battle, BattleUnit } from '../../types/game'
-import { attackableTargets, attackOption, canControl, hexDistance, movableHexes, stackCount, unitAt } from './logic'
+import { attackableTargets, attackOption, canControl, hexDistance, hpFraction, movableHexes, stackCount, unitAt } from './logic'
 
 function unit(over: Partial<BattleUnit> & Pick<BattleUnit, 'id' | 'owner' | 'pos'>): BattleUnit {
   return {
@@ -32,6 +32,16 @@ describe('stackCount', () => {
     expect(stackCount(unit({ id: 'a', owner: 'attacker', pos: { q: 0, r: 0 }, hp: 60, hp_per: 30 }))).toBe(2)
     expect(stackCount(unit({ id: 'a', owner: 'attacker', pos: { q: 0, r: 0 }, hp: 1, hp_per: 30 }))).toBe(1)
     expect(stackCount(unit({ id: 'a', owner: 'attacker', pos: { q: 0, r: 0 }, hp: 0, hp_per: 30 }))).toBe(0)
+  })
+})
+
+describe('hpFraction', () => {
+  it('é 1.0 com o stack cheio e cai com chip damage dentro do escalão', () => {
+    expect(hpFraction(unit({ id: 'a', owner: 'attacker', pos: { q: 0, r: 0 }, hp: 100, hp_per: 20 }))).toBe(1)
+    expect(hpFraction(unit({ id: 'a', owner: 'attacker', pos: { q: 0, r: 0 }, hp: 97, hp_per: 20 }))).toBeCloseTo(0.97)
+  })
+  it('é 0 quando morto', () => {
+    expect(hpFraction(unit({ id: 'a', owner: 'attacker', pos: { q: 0, r: 0 }, hp: 0, hp_per: 20 }))).toBe(0)
   })
 })
 

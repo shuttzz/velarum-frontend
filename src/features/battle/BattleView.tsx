@@ -5,7 +5,7 @@ import { useBattle, useBattleActions } from '../../queries/useBattle'
 import { useGameUIStore } from '../../stores/useGameUIStore'
 import { errorMessage } from '../../api/client'
 import { unitColor } from '../city/buildingVisual'
-import { attackOption, attackableTargets, canControl, hexKey, movableHexes, stackCount, unitAt } from './logic'
+import { attackOption, attackableTargets, canControl, hexKey, hpFraction, movableHexes, stackCount, unitAt } from './logic'
 
 const HEX = 34 // raio do hexágono (px)
 
@@ -232,8 +232,12 @@ function UnitToken({
   onClick: () => void
 }) {
   const color = unit.owner === 'attacker' ? unitColor(unit.key) : '#7a3b3b'
+  const frac = hpFraction(unit)
+  const barW = HEX * 1.15
+  const barY = cy + HEX * 0.62 + 3
   return (
     <g onClick={onClick} style={{ cursor: 'pointer', opacity: dimmed ? 0.5 : 1 }}>
+      <title>{`${unit.hp} HP · ×${stackCount(unit)}`}</title>
       <circle
         cx={cx}
         cy={cy}
@@ -242,22 +246,33 @@ function UnitToken({
         stroke={selected ? '#e0b04a' : unit.owner === 'attacker' ? '#cfe0ff' : '#e0a0a0'}
         strokeWidth={selected ? 3.5 : 2}
       />
-      <text x={cx} y={cy - 4} textAnchor="middle" dominantBaseline="middle" fontSize={17} style={pointerNone}>
+      <text x={cx} y={cy - 5} textAnchor="middle" dominantBaseline="middle" fontSize={16} style={pointerNone}>
         {unitIcon(unit.key)}
       </text>
       <text
         x={cx}
-        y={cy + 13}
+        y={cy + 11}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={12}
+        fontSize={11}
         fontWeight={700}
         fill="#fff"
         fontFamily="system-ui, sans-serif"
         style={pointerNone}
       >
-        ×{stackCount(unit)}
+        ×{stackCount(unit)} · {unit.hp}
       </text>
+      {/* Barra de HP do escalão atual: deixa o "chip damage" visível mesmo sem perder figura. */}
+      <rect x={cx - barW / 2} y={barY} width={barW} height={4} rx={2} fill="#000" opacity={0.45} style={pointerNone} />
+      <rect
+        x={cx - barW / 2}
+        y={barY}
+        width={Math.max(0, barW * frac)}
+        height={4}
+        rx={2}
+        fill={frac > 0.5 ? '#5ad17a' : frac > 0.25 ? '#e0b04a' : '#e0593a'}
+        style={pointerNone}
+      />
     </g>
   )
 }
@@ -288,7 +303,8 @@ function Footer({
     )
   }
   return (
-    <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'center' }}>
+    <div style={{ marginTop: 12, textAlign: 'center' }}>
+      <p style={{ fontSize: 12, color: '#9aa3b2', margin: '0 0 8px' }}>{t('battle.hint')}</p>
       <button onClick={onEndTurn} disabled={busy} style={primaryBtn}>
         {busy ? t('battle.resolving') : t('battle.endTurn')}
       </button>

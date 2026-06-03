@@ -131,6 +131,7 @@
     "starting": "Iniciando…",
     "round": "Rodada {{n}}/{{max}}",
     "endTurn": "Encerrar turno",
+    "hint": "Clique numa tropa sua, depois numa casa verde para mover ou num inimigo em vermelho para atacar.",
     "resolving": "Resolvendo…",
     "victory": "Vitória!",
     "defeat": "Derrota",

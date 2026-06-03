@@ -44,6 +44,16 @@ export function stackCount(u: BattleUnit): number {
   return Math.ceil(u.hp / u.hp_per)
 }
 
+// Fração de vida do stack (0..1) relativa ao HP cheio do nº ATUAL de figuras (count×hp_per).
+// Torna visível o "chip damage": tirar 3 de 100 baixa para 0.97 mesmo sem perder figura. Cai
+// para ~1 de novo quando uma figura morre (e o count diminui) — comportamento de barra por escalão.
+export function hpFraction(u: BattleUnit): number {
+  const count = stackCount(u)
+  if (count <= 0) return 0
+  const full = count * u.hp_per
+  return Math.max(0, Math.min(1, u.hp / full))
+}
+
 // Pode o jogador comandar esta unidade agora? (turno do atacante, unidade do atacante, viva,
 // ainda não agiu nesta rodada).
 export function canControl(b: Battle, u: BattleUnit): boolean {

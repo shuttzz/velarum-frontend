@@ -131,6 +131,7 @@
     "starting": "Starting…",
     "round": "Round {{n}}/{{max}}",
     "endTurn": "End turn",
+    "hint": "Click one of your troops, then a green tile to move or a red enemy to attack.",
     "resolving": "Resolving…",
     "victory": "Victory!",
     "defeat": "Defeat",
