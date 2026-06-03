@@ -18,3 +18,13 @@ const COLORS: Record<string, string> = {
 export function buildingColor(key: string): string {
   return COLORS[key] ?? '#555b6e'
 }
+
+// Cor placeholder por unidade (slot de imagem nos cards de recrutamento → sprite depois).
+const UNIT_COLORS: Record<string, string> = {
+  lanceiro: '#9c6b3b',
+  arqueiro: '#3b7a5a',
+}
+
+export function unitColor(key: string): string {
+  return UNIT_COLORS[key] ?? '#555b6e'
+}

@@ -13,6 +13,7 @@ import {
   maxAffordable,
 } from '../catalog'
 import { useNow, secondsUntil } from '../../../lib/useNow'
+import { unitColor } from '../buildingVisual'
 
 const BARRACKS_KEY = 'canteiro_de_almas'
 
@@ -28,7 +29,11 @@ export function BuildingModal({ city }: { city: City }) {
   if (!b || editMode) return null // no modo edição não abre modal (clique = mover)
 
   return (
-    <Modal title={`${t(`buildings.${b.type}`)} · ${t('selected.lvl', { level: b.level })}`} onClose={() => selectBuilding(null)} width={360}>
+    <Modal
+      title={`${t(`buildings.${b.type}`)} · ${t('selected.lvl', { level: b.level })}`}
+      onClose={() => selectBuilding(null)}
+      width={b.type === BARRACKS_KEY ? 520 : 360}
+    >
       <UpgradeSection city={city} b={b} />
       {b.type === BARRACKS_KEY && <RecruitSection city={city} barracksLevel={b.level} />}
     </Modal>
@@ -95,14 +100,15 @@ function RecruitSection({ city, barracksLevel }: { city: City; barracksLevel: nu
         <strong>{t('military.title')}</strong>
         <span style={{ fontSize: 12, color: '#9aa3b2' }}>{t('military.armyCap', { used, cap: city.army_cap })}</span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={unitGrid}>
         {catalog.units.map((u) => {
           const locked = barracksLevel < u.min_barracks_level
           // Máximo recrutável agora = limitado pelos recursos E pelo teto de exército.
           const max = locked ? 0 : Math.min(maxAffordable(city.resources, u.cost), capRemaining)
           return (
-            <UnitRow
+            <UnitCard
               key={u.key}
+              unitKey={u.key}
               name={t(`units.${u.key}`)}
               cost={u.cost}
               time={formatDuration(u.recruit_time)}
@@ -118,7 +124,8 @@ function RecruitSection({ city, barracksLevel }: { city: City; barracksLevel: nu
   )
 }
 
-function UnitRow({
+function UnitCard({
+  unitKey,
   name,
   cost,
   time,
@@ -127,6 +134,7 @@ function UnitRow({
   pending,
   onRecruit,
 }: {
+  unitKey: string
   name: string
   cost: Amounts
   time: string
@@ -141,19 +149,17 @@ function UnitRow({
   const canRecruit = !lockedNote && max > 0 && !pending
 
   return (
-    <div style={{ ...panel, opacity: lockedNote ? 0.6 : 1 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span style={{ fontWeight: 600 }}>{name}</span>
-        <span style={{ fontSize: 11, color: '#9aa3b2' }}>⏱ {t('military.perUnit', { time })}</span>
-      </div>
-      <div style={{ fontSize: 12, color: '#9aa3b2', marginTop: 2 }}>
-        <CostLine amounts={cost} />
+    <div style={{ ...unitCardStyle, opacity: lockedNote ? 0.6 : 1 }}>
+      <div style={{ ...thumb, background: unitColor(unitKey) }} />
+      <div style={{ fontWeight: 600, fontSize: 13, marginTop: 6 }}>{name}</div>
+      <div style={{ fontSize: 11, color: '#9aa3b2', marginTop: 2 }}>
+        <CostLine amounts={cost} /> · ⏱ {t('military.perUnit', { time })}
       </div>
       {lockedNote ? (
-        <div style={{ fontSize: 12, color: '#c2724a', marginTop: 4 }}>{lockedNote}</div>
+        <div style={{ fontSize: 11, color: '#c2724a', marginTop: 6 }}>{lockedNote}</div>
       ) : (
         <>
-          <div style={{ fontSize: 12, color: max > 0 ? '#5ad17a' : '#e0884a', marginTop: 4 }}>
+          <div style={{ fontSize: 11, color: max > 0 ? '#5ad17a' : '#e0884a', marginTop: 4 }}>
             {t('military.maxNow', { max })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
@@ -169,17 +175,17 @@ function UnitRow({
             <button onClick={() => setCount(Math.max(max, 1))} disabled={!canRecruit} style={smallBtn}>
               {t('military.max')}
             </button>
-            <button
-              onClick={() => {
-                onRecruit(clamped)
-                setCount(1) // reseta o input após enviar
-              }}
-              disabled={!canRecruit}
-              style={{ ...btn, flex: 1 }}
-            >
-              {t('military.recruit')}
-            </button>
           </div>
+          <button
+            onClick={() => {
+              onRecruit(clamped)
+              setCount(1) // reseta o input após enviar
+            }}
+            disabled={!canRecruit}
+            style={{ ...btn, marginTop: 6 }}
+          >
+            {t('military.recruit')}
+          </button>
         </>
       )}
     </div>
@@ -200,6 +206,27 @@ const panel: CSSProperties = {
   background: '#1a1f2b',
   border: '1px solid #2a3142',
   borderRadius: 8,
+}
+
+const unitGrid: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+  gap: 10,
+}
+
+const unitCardStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  padding: 8,
+  borderRadius: 10,
+  border: '1px solid #2a3142',
+  background: '#1a1f2b',
+}
+
+const thumb: CSSProperties = {
+  width: '100%',
+  aspectRatio: '1 / 1',
+  borderRadius: 6,
 }
 
 const btn: CSSProperties = {
