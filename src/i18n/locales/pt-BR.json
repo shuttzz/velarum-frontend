@@ -41,6 +41,7 @@
   },
   "build": {
     "title": "Construir",
+    "placing": "Posicionando {{name}} — clique numa célula vazia",
     "placingHint": "Clique numa célula vazia…",
     "locked": "🔒 requer {{reqs}}",
     "req": "{{name}} nv{{level}}",

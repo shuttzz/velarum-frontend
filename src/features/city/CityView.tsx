@@ -8,6 +8,7 @@ import { ResourceBar } from './components/ResourceBar'
 import { BuildingModal } from './components/BuildingModal'
 import { PendingBuildModal } from './components/PendingBuildModal'
 import { CityToolbar } from './components/CityToolbar'
+import { PlacingBanner } from './components/PlacingBanner'
 import { AccountControls } from '../../components/AccountControls'
 
 // Tela da cidade: canvas fullscreen + HUD sobreposto. Interações por MODAIS (construir, detalhe
@@ -22,6 +23,7 @@ export function CityView({ cityId }: { cityId: string }) {
       <HUDLayer>
         {city && <ResourceBar city={city} />}
         {city && <CityToolbar city={city} />}
+        <PlacingBanner />
         {city && <BuildingModal city={city} />}
         {city && <PendingBuildModal city={city} />}
         <AccountControls style={{ position: 'absolute', bottom: 12, right: 16, pointerEvents: 'auto' }} />

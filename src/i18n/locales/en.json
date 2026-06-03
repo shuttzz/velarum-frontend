@@ -41,6 +41,7 @@
   },
   "build": {
     "title": "Build",
+    "placing": "Placing {{name}} — click an empty cell",
     "placingHint": "Click an empty cell…",
     "locked": "🔒 requires {{reqs}}",
     "req": "{{name}} lv{{level}}",
