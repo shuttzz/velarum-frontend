@@ -41,6 +41,16 @@ export function canAfford(res: Amounts, cost: Amounts): boolean {
   return res.matter >= cost.matter && res.energy >= cost.energy && res.knowledge >= cost.knowledge
 }
 
+// maxAffordable: quantas unidades de `cost` dá pra pagar com `res` (mínimo entre os recursos
+// com custo > 0). Se o custo é todo zero, retorna Infinity.
+export function maxAffordable(res: Amounts, cost: Amounts): number {
+  let max = Infinity
+  if (cost.matter > 0) max = Math.min(max, Math.floor(res.matter / cost.matter))
+  if (cost.energy > 0) max = Math.min(max, Math.floor(res.energy / cost.energy))
+  if (cost.knowledge > 0) max = Math.min(max, Math.floor(res.knowledge / cost.knowledge))
+  return max
+}
+
 // Nome amigável de um edifício a partir do catálogo (fallback: a própria key).
 export function buildingName(catalog: Catalog, key: string): string {
   return catalog.buildings.find((b) => b.key === key)?.name ?? key

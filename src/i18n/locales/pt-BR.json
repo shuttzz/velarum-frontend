@@ -46,10 +46,15 @@
     "req": "{{name}} nv{{level}}",
     "maxReached": "máx. {{max}}",
     "edit": "✏️ Editar layout",
-    "editDone": "✓ Concluir edição"
+    "editDone": "✓ Concluir edição",
+    "openBtn": "🏗 Construir",
+    "editHint": "Modo edição: clique num edifício e depois numa célula vazia para mover.",
+    "cantAfford": "sem recursos"
   },
   "selected": {
     "levelPos": "nível {{level}} · posição ({{x}},{{y}})",
+    "lvl": "nível {{level}}",
+    "pos": "posição ({{x}},{{y}})",
     "upgradeTo": "Upgrade → nível {{level}}",
     "upgrade": "⬆ upgrade",
     "upgrading": "⏳ Subindo p/ nv{{level}} · {{time}}",
@@ -88,7 +93,9 @@
     "recruiting": "Recrutando…",
     "marching": "{{count}} em marcha",
     "perUnit": "{{time}}/un",
-    "locked": "🔒 Canteiro nv{{level}}"
+    "locked": "🔒 Canteiro nv{{level}}",
+    "maxNow": "Máx. agora: {{max}}",
+    "max": "máx"
   },
   "map": {
     "title": "Mapa do Mundo",

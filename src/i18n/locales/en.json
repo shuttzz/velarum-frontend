@@ -46,10 +46,15 @@
     "req": "{{name}} lv{{level}}",
     "maxReached": "max. {{max}}",
     "edit": "✏️ Edit layout",
-    "editDone": "✓ Done editing"
+    "editDone": "✓ Done editing",
+    "openBtn": "🏗 Build",
+    "editHint": "Edit mode: click a building then an empty cell to move it.",
+    "cantAfford": "not enough resources"
   },
   "selected": {
     "levelPos": "level {{level}} · position ({{x}},{{y}})",
+    "lvl": "level {{level}}",
+    "pos": "position ({{x}},{{y}})",
     "upgradeTo": "Upgrade → level {{level}}",
     "upgrade": "⬆ upgrade",
     "upgrading": "⏳ Upgrading to lv{{level}} · {{time}}",
@@ -88,7 +93,9 @@
     "recruiting": "Recruiting…",
     "marching": "{{count}} marching",
     "perUnit": "{{time}}/unit",
-    "locked": "🔒 Barracks lv{{level}}"
+    "locked": "🔒 Barracks lv{{level}}",
+    "maxNow": "Max now: {{max}}",
+    "max": "max"
   },
   "map": {
     "title": "World Map",
