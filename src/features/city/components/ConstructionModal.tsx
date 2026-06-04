@@ -4,7 +4,7 @@ import type { Amounts, CatalogBuilding, City } from '../../../types/game'
 import { Modal } from '../../../components/Modal'
 import { useCatalog } from '../../../queries/useCatalog'
 import { useGameUIStore } from '../../../stores/useGameUIStore'
-import { canAfford, copiesUsed, formatDuration, prereqsMet } from '../catalog'
+import { buildQueueUsed, canAfford, copiesUsed, formatDuration, prereqsMet, queuesForEra } from '../catalog'
 import { buildingColor, buildingIcon } from '../buildingVisual'
 import { BuildingInfo } from './BuildingInfo'
 
@@ -24,10 +24,18 @@ export function ConstructionModal({ city, onClose }: { city: City; onClose: () =
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const selected = options.find((b) => b.key === selectedKey) ?? options[0] ?? null
 
+  const queueLimit = queuesForEra(city.era)
+  const queueUsed = buildQueueUsed(city)
+  const queueFull = queueUsed >= queueLimit
+
   if (!catalog) return null
 
   return (
     <Modal title={t('build.title')} onClose={onClose} width={620}>
+      <div style={{ fontSize: 12, marginBottom: 8, color: queueFull ? '#e0b04a' : '#9aa3b2' }}>
+        {t('build.queue', { used: queueUsed, max: queueLimit })}
+        {queueFull && ` · ${t('build.queueFull')}`}
+      </div>
       <div style={layout}>
         <div style={listCol}>
           {options.map((b) => {
@@ -51,6 +59,7 @@ export function ConstructionModal({ city, onClose }: { city: City; onClose: () =
             <Detail
               b={selected}
               city={city}
+              queueFull={queueFull}
               onBuild={() => {
                 startPlacing(selected.key)
                 onClose()
@@ -65,11 +74,11 @@ export function ConstructionModal({ city, onClose }: { city: City; onClose: () =
   )
 }
 
-function Detail({ b, city, onBuild }: { b: CatalogBuilding; city: City; onBuild: () => void }) {
+function Detail({ b, city, queueFull, onBuild }: { b: CatalogBuilding; city: City; queueFull: boolean; onBuild: () => void }) {
   const { t } = useTranslation()
   const unlocked = prereqsMet(city, b)
   const affordable = canAfford(city.resources, b.base_cost)
-  const disabled = !unlocked || !affordable
+  const disabled = !unlocked || !affordable || queueFull
 
   return (
     <div>
@@ -97,7 +106,7 @@ function Detail({ b, city, onBuild }: { b: CatalogBuilding; city: City; onBuild:
       )}
 
       <button onClick={onBuild} disabled={disabled} style={{ ...buildBtn, opacity: disabled ? 0.55 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}>
-        {t('build.build')}
+        {queueFull ? `🔒 ${t('build.queueFull')}` : t('build.build')}
       </button>
     </div>
   )

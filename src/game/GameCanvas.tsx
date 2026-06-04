@@ -5,6 +5,7 @@ import { useCity } from '../queries/useCity'
 import { useCityActions } from '../queries/useGameMutations'
 import { useGameUIStore } from '../stores/useGameUIStore'
 import { useResizeCanvas } from './useResizeCanvas'
+import { errorMessage } from '../api/client'
 
 // Canvas fullscreen do jogo. Faz a ponte entre o renderer (eventos de clique/hover) e o estado:
 // - clique em edifício -> seleciona; em obra nova -> cancelar; em célula vazia -> constrói/move
@@ -18,6 +19,13 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
   const actions = useCityActions(cityId)
   const { t } = useTranslation()
   const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null)
+  // Mensagem transitória de erro (ex.: fila cheia, posição inválida) ao posicionar/mover na grade.
+  const [flash, setFlash] = useState<string | null>(null)
+  useEffect(() => {
+    if (!flash) return
+    const id = setTimeout(() => setFlash(null), 3500)
+    return () => clearTimeout(id)
+  }, [flash])
 
   const lvlAbbr = t('hud.lvlAbbr')
   // Nome traduzido por tipo, para o tooltip.
@@ -28,8 +36,8 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
   }, [city, t])
 
   // ref com o contexto atual para os handlers do renderer não verem estado obsoleto
-  const ctxRef = useRef({ actions })
-  ctxRef.current = { actions }
+  const ctxRef = useRef({ actions, setFlash })
+  ctxRef.current = { actions, setFlash }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -57,13 +65,19 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
     const onHover = (id: string | null, x: number, y: number) => setHover(id ? { id, x, y } : null)
     const onCell = (x: number, y: number) => {
       const ui = useGameUIStore.getState()
-      const { actions } = ctxRef.current
+      const { actions, setFlash } = ctxRef.current
       if (ui.buildMode.type === 'placing') {
-        actions.construct.mutate({ building_type: ui.buildMode.buildingType, x, y })
+        actions.construct.mutate(
+          { building_type: ui.buildMode.buildingType, x, y },
+          { onError: (e) => setFlash(errorMessage(e)) },
+        )
         ui.cancel()
       } else if (ui.editMode && ui.selectedBuildingId) {
         // Só move no MODO EDIÇÃO; fora dele, clicar em célula vazia apenas limpa a seleção.
-        actions.move.mutate({ buildingId: ui.selectedBuildingId, x, y })
+        actions.move.mutate(
+          { buildingId: ui.selectedBuildingId, x, y },
+          { onError: (e) => setFlash(errorMessage(e)) },
+        )
         ui.selectBuilding(null)
       } else if (ui.selectedBuildingId) {
         ui.selectBuilding(null)
@@ -95,8 +109,27 @@ export function GameCanvas({ cityId, renderer }: { cityId: string; renderer: IRe
       {hover && hoverName && (
         <div style={{ ...tooltip, left: hover.x + 12, top: hover.y + 12 }}>{hoverName}</div>
       )}
+      {flash && <div style={errorToast}>{flash}</div>}
     </>
   )
+}
+
+const errorToast: CSSProperties = {
+  position: 'absolute',
+  bottom: 64,
+  left: '50%',
+  transform: 'translateX(-50%)',
+  padding: '10px 16px',
+  background: 'rgba(58,26,26,0.96)',
+  border: '1px solid #9f5a5a',
+  borderRadius: 8,
+  color: '#fff',
+  fontSize: 13,
+  fontFamily: 'system-ui, sans-serif',
+  pointerEvents: 'none',
+  zIndex: 60,
+  maxWidth: '80vw',
+  textAlign: 'center',
 }
 
 const tooltip: CSSProperties = {

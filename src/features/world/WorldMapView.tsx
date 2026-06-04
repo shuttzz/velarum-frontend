@@ -5,7 +5,7 @@ import { useCity } from '../../queries/useCity'
 import { useProvinces } from '../../queries/useProvinces'
 import { useArmyActions } from '../../queries/useGameMutations'
 import { errorMessage } from '../../api/client'
-import { formatDuration } from '../city/catalog'
+import { formatDuration, marchQueueUsed, queuesForEra } from '../city/catalog'
 import { useNow, secondsUntil } from '../../lib/useNow'
 import { ResourceBar } from '../city/components/ResourceBar'
 import { AccountControls } from '../../components/AccountControls'
@@ -197,6 +197,9 @@ function ProvincePanel({ city, province }: { city: City; province: Province }) {
 
   const totalSelected = Object.values(send).reduce((a, b) => a + b, 0)
   const busy = march.isPending || startBattle.isPending
+  const marchLimit = queuesForEra(city.era)
+  const marchUsed = marchQueueUsed(city)
+  const marchFull = marchUsed >= marchLimit
 
   return (
     <div style={panel}>
@@ -248,7 +251,11 @@ function ProvincePanel({ city, province }: { city: City; province: Province }) {
               />
             </div>
           ))}
-          <button onClick={attack} disabled={busy || totalSelected === 0} style={attackBtn}>
+          <div style={{ fontSize: 11, marginTop: 6, color: marchFull ? '#e0b04a' : '#6b7280' }}>
+            {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
+            {marchFull && ` · ${t('map.marchQueueFull')}`}
+          </div>
+          <button onClick={attack} disabled={busy || totalSelected === 0 || marchFull} style={attackBtn}>
             {march.isPending ? t('map.attacking') : t('map.send')}
           </button>
           <button onClick={fight} disabled={busy || totalSelected === 0} style={battleBtn}>

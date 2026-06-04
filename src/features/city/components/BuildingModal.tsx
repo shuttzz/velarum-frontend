@@ -6,14 +6,17 @@ import { useGameUIStore } from '../../../stores/useGameUIStore'
 import { useCityActions, useArmyActions } from '../../../queries/useGameMutations'
 import { useCatalog } from '../../../queries/useCatalog'
 import {
+  buildQueueUsed,
   buildSecondsForLevel,
   canAfford,
   costForLevel,
   formatDuration,
   maxAffordable,
+  queuesForEra,
 } from '../catalog'
 import { useNow, secondsUntil } from '../../../lib/useNow'
 import { unitColor } from '../buildingVisual'
+import { errorMessage } from '../../../api/client'
 import { BuildingInfo } from './BuildingInfo'
 
 const BARRACKS_KEY = 'canteiro_de_almas'
@@ -57,6 +60,8 @@ function UpgradeSection({ city, b }: { city: City; b: Building }) {
   const cost = def && catalog ? costForLevel(def.base_cost, catalog.growth.cost, nextLevel) : null
   const time = def && catalog ? buildSecondsForLevel(def.base_time, catalog.growth.build_time, nextLevel) : null
   const affordable = cost ? canAfford(city.resources, cost) : false
+  // Fila de obra cheia (construção + upgrade contam juntas) — desabilita iniciar novo upgrade.
+  const queueFull = buildQueueUsed(city) >= queuesForEra(city.era)
 
   return (
     <div style={{ marginBottom: 8 }}>
@@ -79,9 +84,17 @@ function UpgradeSection({ city, b }: { city: City; b: Building }) {
             <div style={{ color: affordable ? '#5ad17a' : '#e0884a', fontSize: 13, marginTop: 2 }}>
               <CostLine amounts={cost} /> · ⏱ {formatDuration(time)} {affordable ? '· ✓' : `· ✗ ${t('build.cantAfford')}`}
             </div>
-            <button onClick={() => upgrade.mutate(b.id)} disabled={upgrade.isPending || !affordable} style={{ ...btn, marginTop: 8 }}>
+            {queueFull && <div style={{ fontSize: 12, color: '#e0b04a', marginTop: 4 }}>🔒 {t('build.queueFull')}</div>}
+            <button
+              onClick={() => upgrade.mutate(b.id)}
+              disabled={upgrade.isPending || !affordable || queueFull}
+              style={{ ...btn, marginTop: 8 }}
+            >
               {t('selected.upgrade')}
             </button>
+            {upgrade.isError && (
+              <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>{errorMessage(upgrade.error)}</p>
+            )}
           </div>
         )
       )}
@@ -128,6 +141,8 @@ function RecruitSection({ city, barracksLevel }: { city: City; barracksLevel: nu
           const locked = barracksLevel < u.min_barracks_level
           // Máximo recrutável agora = limitado pelos recursos E pelo teto de exército.
           const max = locked ? 0 : Math.min(maxAffordable(city.resources, u.cost), capRemaining)
+          // 1 lane por TIPO: se já há um treinamento deste tipo, não dá pra enfileirar outro.
+          const inTraining = city.recruits.some((r) => r.unit_type === u.key)
           return (
             <UnitCard
               key={u.key}
@@ -137,12 +152,16 @@ function RecruitSection({ city, barracksLevel }: { city: City; barracksLevel: nu
               time={formatDuration(u.recruit_time)}
               max={max}
               lockedNote={locked ? t('military.locked', { level: u.min_barracks_level }) : null}
+              inTraining={inTraining}
               pending={recruit.isPending}
               onRecruit={(count) => recruit.mutate({ unit_type: u.key, count })}
             />
           )
         })}
       </div>
+      {recruit.isError && (
+        <p style={{ fontSize: 12, color: '#e0884a', margin: '8px 0 0' }}>{errorMessage(recruit.error)}</p>
+      )}
     </div>
   )
 }
@@ -154,6 +173,7 @@ function UnitCard({
   time,
   max,
   lockedNote,
+  inTraining,
   pending,
   onRecruit,
 }: {
@@ -163,16 +183,17 @@ function UnitCard({
   time: string
   max: number
   lockedNote: string | null
+  inTraining: boolean
   pending: boolean
   onRecruit: (count: number) => void
 }) {
   const { t } = useTranslation()
   const [count, setCount] = useState(1)
   const clamped = Math.max(1, Math.min(count, Math.max(max, 1)))
-  const canRecruit = !lockedNote && max > 0 && !pending
+  const canRecruit = !lockedNote && !inTraining && max > 0 && !pending
 
   return (
-    <div style={{ ...unitCardStyle, opacity: lockedNote ? 0.6 : 1 }}>
+    <div style={{ ...unitCardStyle, opacity: lockedNote || inTraining ? 0.6 : 1 }}>
       <div style={{ ...thumb, background: unitColor(unitKey) }} />
       <div style={{ fontWeight: 600, fontSize: 13, marginTop: 6 }}>{name}</div>
       <div style={{ fontSize: 11, color: '#9aa3b2', marginTop: 2 }}>
@@ -180,6 +201,8 @@ function UnitCard({
       </div>
       {lockedNote ? (
         <div style={{ fontSize: 11, color: '#c2724a', marginTop: 6 }}>{lockedNote}</div>
+      ) : inTraining ? (
+        <div style={{ fontSize: 11, color: '#e0b04a', marginTop: 6 }}>🔒 {t('military.oneAtATime')}</div>
       ) : (
         <>
           <div style={{ fontSize: 11, color: max > 0 ? '#5ad17a' : '#e0884a', marginTop: 4 }}>

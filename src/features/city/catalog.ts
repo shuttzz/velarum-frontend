@@ -19,6 +19,27 @@ export function buildSecondsForLevel(base: number, growth: number, level: number
   return base * Math.pow(growth, level - 1)
 }
 
+// Nº de FILAS (lanes) simultâneas de obra/marcha por era — espelha config.QueuesForEra do
+// backend. NÃO é o slot da grade. Cresce em 3/5/6/7; teto 5. (Aluguel pago temporário soma
+// até base+1 ≤ 5 — futuro, ainda não implementado.)
+export function queuesForEra(era: number): number {
+  if (era >= 7) return 5
+  if (era === 6) return 4
+  if (era === 5) return 3
+  if (era >= 3) return 2
+  return 1
+}
+
+// Filas de obra em uso (construção nova + upgrade contam juntas) = total de pendências.
+export function buildQueueUsed(city: City): number {
+  return city.pending.length
+}
+
+// Marchas ativas (ida/volta) em uso.
+export function marchQueueUsed(city: City): number {
+  return city.marches.filter((m) => m.status !== 'done').length
+}
+
 // Quantas cópias deste tipo já existem (construídas + na fila de construção, não upgrades).
 export function copiesUsed(city: City, key: string): number {
   const built = city.buildings.filter((b) => b.type === key).length

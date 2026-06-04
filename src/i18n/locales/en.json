@@ -54,7 +54,9 @@
     "cantAfford": "not enough resources",
     "build": "Build",
     "selectHint": "Select a building to see its details.",
-    "produces": "+{{rate}}/h {{res}}"
+    "produces": "+{{rate}}/h {{res}}",
+    "queue": "Build queues: {{used}}/{{max}}",
+    "queueFull": "queues full — wait for a build to finish"
   },
   "buildingDesc": {
     "lar_do_cla": "Heart of the clan. Each level unlocks new buildings and sustains your people.",
@@ -124,7 +126,8 @@
     "locked": "🔒 Barracks lv{{level}}",
     "maxNow": "Max now: {{max}}",
     "max": "max",
-    "training": "In training"
+    "training": "In training",
+    "oneAtATime": "already training (1 per type)"
   },
   "map": {
     "title": "World Map",
@@ -141,7 +144,9 @@
     "returning": "Returning… arrives in {{time}}",
     "victory": "Victory!",
     "defeat": "Defeat",
-    "send": "Send army"
+    "send": "Send army",
+    "marchQueue": "March queues: {{used}}/{{max}}",
+    "marchQueueFull": "queues full — wait for a march to finish"
   },
   "battle": {
     "title": "Tactical Battle",
@@ -189,9 +194,11 @@
     "unit_unknown": "Unknown unit.",
     "bad_count": "Invalid amount.",
     "unit_locked": "Unit locked — upgrade the Soul Cradle.",
+    "recruit_busy": "A recruitment of this type is already in progress.",
     "no_troops": "Not enough troops in the garrison.",
     "province_conquered": "Province already conquered.",
     "province_not_found": "Province not found.",
+    "queue_full": "Queue limit reached — wait for an operation to finish.",
     "battle_active": "A battle is already in progress.",
     "battle_not_found": "Battle not found.",
     "invalid_action": "Invalid battle action.",

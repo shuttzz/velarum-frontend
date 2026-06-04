@@ -54,7 +54,9 @@
     "cantAfford": "sem recursos",
     "build": "Construir",
     "selectHint": "Selecione um edifício para ver os detalhes.",
-    "produces": "+{{rate}}/h de {{res}}"
+    "produces": "+{{rate}}/h de {{res}}",
+    "queue": "Filas de obra: {{used}}/{{max}}",
+    "queueFull": "fila cheia — aguarde uma obra terminar"
   },
   "buildingDesc": {
     "lar_do_cla": "Coração do clã. Cada nível libera novas construções e sustenta o seu povo.",
@@ -124,7 +126,8 @@
     "locked": "🔒 Canteiro nv{{level}}",
     "maxNow": "Máx. agora: {{max}}",
     "max": "máx",
-    "training": "Em treinamento"
+    "training": "Em treinamento",
+    "oneAtATime": "já em treinamento (1 por tipo)"
   },
   "map": {
     "title": "Mapa do Mundo",
@@ -141,7 +144,9 @@
     "returning": "Voltando… chega em {{time}}",
     "victory": "Vitória!",
     "defeat": "Derrota",
-    "send": "Enviar exército"
+    "send": "Enviar exército",
+    "marchQueue": "Filas de marcha: {{used}}/{{max}}",
+    "marchQueueFull": "fila cheia — aguarde uma marcha terminar"
   },
   "battle": {
     "title": "Batalha Tática",
@@ -189,9 +194,11 @@
     "unit_unknown": "Unidade desconhecida.",
     "bad_count": "Quantidade inválida.",
     "unit_locked": "Unidade bloqueada — suba o Canteiro de Almas.",
+    "recruit_busy": "Já há um recrutamento deste tipo em andamento.",
     "no_troops": "Tropas insuficientes na guarnição.",
     "province_conquered": "Província já conquistada.",
     "province_not_found": "Província não encontrada.",
+    "queue_full": "Limite de filas atingido — aguarde uma operação terminar.",
     "battle_active": "Já há uma batalha em andamento.",
     "battle_not_found": "Batalha não encontrada.",
     "invalid_action": "Ação inválida na batalha.",
