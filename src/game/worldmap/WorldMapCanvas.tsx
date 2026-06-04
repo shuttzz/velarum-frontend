@@ -7,10 +7,16 @@ export function WorldMapCanvas({
   hexes,
   selectedId,
   onSelect,
+  worldView = false,
+  regions,
+  worldOrigin,
 }: {
   hexes: MapHex[]
   selectedId: string | null
   onSelect: (id: string | null) => void
+  worldView?: boolean
+  regions?: { label: string; q: number; r: number }[]
+  worldOrigin?: { q: number; r: number }
 }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const rendererRef = useRef<WorldMapRenderer | null>(null)
@@ -31,8 +37,8 @@ export function WorldMapCanvas({
   }, [])
 
   useEffect(() => {
-    rendererRef.current?.render({ hexes, selectedId })
-  }, [hexes, selectedId])
+    rendererRef.current?.render({ hexes, selectedId, worldView, regions, worldOrigin })
+  }, [hexes, selectedId, worldView, regions, worldOrigin])
 
   return <div ref={hostRef} style={host} />
 }

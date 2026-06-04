@@ -104,6 +104,16 @@
     "toMap": "🗺 Map",
     "toCity": "🏛 City"
   },
+  "worldmap": {
+    "viewRegion": "📍 Region",
+    "viewWorld": "🌍 World"
+  },
+  "regions": {
+    "campos_da_aurora": "Dawn Fields",
+    "ermo_cinereo": "Ashen Waste",
+    "litoral_partido": "Broken Shore",
+    "planalto_runico": "Runic Plateau"
+  },
   "units": {
     "lanceiro": "Spearman",
     "arqueiro": "Archer"

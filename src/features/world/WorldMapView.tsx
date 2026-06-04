@@ -14,6 +14,7 @@ import { ViewNav } from '../../components/ViewNav'
 import { useGameUIStore } from '../../stores/useGameUIStore'
 import { WorldMapCanvas } from '../../game/worldmap/WorldMapCanvas'
 import type { MapHex } from '../../game/worldmap/WorldMapRenderer'
+import { WORLD_REGIONS } from '../../game/worldmap/regions'
 
 // Tela do mapa do mundo: cidade no centro + províncias PvE (mapa instanciado), renderizado em
 // PixiJS (pan/zoom). Painel da província + HUD por cima.
@@ -23,6 +24,14 @@ export function WorldMapView({ cityId }: { cityId: string }) {
   const { data: provinces } = useProvinces(cityId)
   const { data: worldCities } = useWorldCities(!!city)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [worldView, setWorldView] = useState(false)
+
+  // Regiões (relativas à sua cidade) e o (0,0) do mundo — para a visão Mundo (divisões + rótulos).
+  const regions = useMemo(
+    () => WORLD_REGIONS.map((rg) => ({ label: t(`regions.${rg.key}`), q: rg.cx - (city?.coord_x ?? 0), r: rg.cy - (city?.coord_y ?? 0) })),
+    [city?.coord_x, city?.coord_y, t],
+  )
+  const worldOrigin = { q: -(city?.coord_x ?? 0), r: -(city?.coord_y ?? 0) }
   const selected = provinces?.find((p) => p.id === selectedId) ?? null
 
   const activeProvinceIds = useMemo(
@@ -64,9 +73,19 @@ export function WorldMapView({ cityId }: { cityId: string }) {
 
   return (
     <div style={screen}>
-      <WorldMapCanvas hexes={hexes} selectedId={selectedId} onSelect={setSelectedId} />
+      <WorldMapCanvas
+        hexes={hexes}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        worldView={worldView}
+        regions={regions}
+        worldOrigin={worldOrigin}
+      />
       {city && <ResourceBar city={city} />}
-      {selected && city && <ProvincePanel city={city} province={selected} />}
+      {selected && !worldView && city && <ProvincePanel city={city} province={selected} />}
+      <button onClick={() => setWorldView((v) => !v)} style={worldToggleBtn}>
+        {worldView ? t('worldmap.viewRegion') : t('worldmap.viewWorld')}
+      </button>
       <ViewNav />
       <AccountControls style={{ position: 'absolute', bottom: 12, right: 16, pointerEvents: 'auto' }} />
     </div>
@@ -205,6 +224,21 @@ const screen: CSSProperties = {
   height: '100vh',
   background: '#0d1016',
   overflow: 'hidden',
+}
+
+const worldToggleBtn: CSSProperties = {
+  position: 'absolute',
+  top: 60,
+  left: 16,
+  padding: '8px 14px',
+  fontSize: 13,
+  borderRadius: 8,
+  border: '1px solid #6c8ebf',
+  background: 'rgba(44,58,90,0.92)',
+  color: '#fff',
+  cursor: 'pointer',
+  pointerEvents: 'auto',
+  fontFamily: 'system-ui, sans-serif',
 }
 
 const panel: CSSProperties = {

@@ -104,6 +104,16 @@
     "toMap": "🗺 Mapa",
     "toCity": "🏛 Cidade"
   },
+  "worldmap": {
+    "viewRegion": "📍 Região",
+    "viewWorld": "🌍 Mundo"
+  },
+  "regions": {
+    "campos_da_aurora": "Campos da Aurora",
+    "ermo_cinereo": "Ermo Cinéreo",
+    "litoral_partido": "Litoral Partido",
+    "planalto_runico": "Planalto Rúnico"
+  },
   "units": {
     "lanceiro": "Lanceiro",
     "arqueiro": "Arqueiro"
