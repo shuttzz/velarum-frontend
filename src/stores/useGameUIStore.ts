@@ -14,6 +14,7 @@ interface GameUIState {
   view: GameView
   editMode: boolean // modo de edição de layout: só aqui é possível MOVER edifícios
   battleId: string | null // batalha tática aberta (overlay sobre o mapa)
+  dismissedBattleId: string | null // última batalha fechada — evita o auto-resume reabri-la
   selectBuilding: (id: string | null) => void
   selectPending: (id: string | null) => void
   startPlacing: (buildingType: string) => void
@@ -31,6 +32,7 @@ export const useGameUIStore = create<GameUIState>((set) => ({
   view: 'city',
   editMode: false,
   battleId: null,
+  dismissedBattleId: null,
   selectBuilding: (id) => set({ selectedBuildingId: id, selectedPendingId: null, buildMode: { type: 'idle' } }),
   selectPending: (id) => set({ selectedPendingId: id, selectedBuildingId: null, buildMode: { type: 'idle' } }),
   // Construir sai do modo edição (são interações distintas).
@@ -41,7 +43,9 @@ export const useGameUIStore = create<GameUIState>((set) => ({
   // Alterna o modo de edição; ao entrar/sair, limpa seleção e modo de construção.
   toggleEdit: () =>
     set((s) => ({ editMode: !s.editMode, selectedBuildingId: null, selectedPendingId: null, buildMode: { type: 'idle' } })),
-  // Abre a batalha tática (overlay); força a vista de mapa por baixo.
-  openBattle: (id) => set({ battleId: id, view: 'map' }),
-  closeBattle: () => set({ battleId: null }),
+  // Abre a batalha tática (overlay); força a vista de mapa por baixo. Limpa o "dismissed"
+  // (esta é uma batalha nova/retomada de propósito).
+  openBattle: (id) => set({ battleId: id, dismissedBattleId: null, view: 'map' }),
+  // Fecha e MARCA como dispensada — o auto-resume não deve reabrir a mesma batalha.
+  closeBattle: () => set((s) => ({ battleId: null, dismissedBattleId: s.battleId })),
 }))

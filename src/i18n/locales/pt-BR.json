@@ -51,7 +51,26 @@
     "editDone": "✓ Concluir edição",
     "openBtn": "🏗 Construir",
     "editHint": "Modo edição: clique num edifício e depois numa célula vazia para mover.",
-    "cantAfford": "sem recursos"
+    "cantAfford": "sem recursos",
+    "build": "Construir",
+    "selectHint": "Selecione um edifício para ver os detalhes.",
+    "produces": "+{{rate}}/h de {{res}}"
+  },
+  "buildingDesc": {
+    "lar_do_cla": "Coração do clã. Cada nível libera novas construções e sustenta o seu povo.",
+    "viveiro_de_pedra": "Extrai Matéria, o recurso bruto para construir e recrutar.",
+    "fogueira_comunal": "Produz Energia, que alimenta obras, rituais e o crescimento da aldeia.",
+    "pedra_da_memoria": "Gera Conhecimento, acumulado para estruturas avançadas e (em breve) pesquisa.",
+    "celeiro_de_argila": "Define a parcela de recursos protegida contra saque (🛡). O que passar disso fica saqueável.",
+    "canteiro_de_almas": "Permite recrutar tropas e define o teto do seu exército. Subir de nível eleva o teto e libera novas unidades."
+  },
+  "buildingLore": {
+    "lar_do_cla": "Foi ao redor deste fogo que o primeiro clã se reuniu. Enquanto arder, o povo tem um lar.",
+    "viveiro_de_pedra": "Onde outros veem rocha morta, os Velari ouvem a pedra respirar e ceder sua substância.",
+    "fogueira_comunal": "Uma chama que nunca se apaga — dela parte o calor que move a aldeia inteira.",
+    "pedra_da_memoria": "Cada sulco guarda uma lembrança do clã. Tocá-la é ouvir a voz dos ancestrais.",
+    "celeiro_de_argila": "Potes selados sob a terra: o que se guarda fundo, o invasor não leva.",
+    "canteiro_de_almas": "Aqui as almas dispostas a lutar são moldadas em guerreiros do clã."
   },
   "selected": {
     "levelPos": "nível {{level}} · posição ({{x}},{{y}})",
@@ -135,7 +154,19 @@
     "resolving": "Resolvendo…",
     "victory": "Vitória!",
     "defeat": "Derrota",
-    "backToMap": "Voltar ao mapa"
+    "backToMap": "Voltar ao mapa",
+    "tile": {
+      "cover": "Abrigo",
+      "cover_desc": "Unidade parada aqui sofre 33% menos dano.",
+      "cover_lore": "Uma dobra no véu enrijece o ar como pedra viva. Quem se abriga em sua sombra recebe os golpes amortecidos pela própria trama do mundo.",
+      "hazard": "Fenda instável",
+      "hazard_desc": "Quem termina o movimento aqui sofre dano (~10% da vida).",
+      "hazard_lore": "Aqui o tecido da realidade se rasga. Atravessar a fenda é sentir o mundo puxar de volta o que ousou pisá-la.",
+      "warp": "Distorção",
+      "warp_desc": "Reduz pela metade o dano de ataques à distância contra quem está aqui.",
+      "warp_lore": "O ar curva-se em espirais invisíveis. Flechas e projéteis perdem o rumo, desviados pela respiração do véu.",
+      "close": "Fechar"
+    }
   },
   "reports": {
     "title": "Relatórios",

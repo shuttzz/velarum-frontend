@@ -8,6 +8,7 @@ import { ReportsOverlay } from './features/reports/ReportsOverlay'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { AccountControls } from './components/AccountControls'
 import { useGameUIStore } from './stores/useGameUIStore'
+import { useCity } from './queries/useCity'
 import { useEnterWorld } from './queries/useEnterWorld'
 import { useCompletionRefetch } from './queries/useCompletionRefetch'
 import { useMe } from './queries/useAuth'
@@ -42,6 +43,7 @@ function Game({ account }: { account: Account }) {
   const enter = useEnterWorld()
   const view = useGameUIStore((s) => s.view)
   const battleId = useGameUIStore((s) => s.battleId)
+  const dismissedBattleId = useGameUIStore((s) => s.dismissedBattleId)
   const openBattle = useGameUIStore((s) => s.openBattle)
 
   // Refetch automático quando uma tarefa conclui (contador zera) — em vez de esperar o poll.
@@ -52,11 +54,14 @@ function Game({ account }: { account: Account }) {
     if (enter.data) qc.setQueryData(queryKeys.city(enter.data.id), enter.data)
   }, [enter.data, qc])
 
-  // Retoma uma batalha em andamento ao recarregar a página (o servidor é a fonte da verdade).
-  const activeBattleId = enter.data?.active_battle_id
+  // Retoma uma batalha em andamento ao recarregar a página, lendo o estado VIVO da cidade
+  // (useCity revalida; enter.data é congelado e ficaria desatualizado). Não reabre a batalha
+  // que o usuário acabou de fechar (dismissedBattleId). O servidor é a fonte da verdade.
+  const liveCity = useCity(enter.data?.id ?? null)
+  const activeBattleId = liveCity.data?.active_battle_id ?? ''
   useEffect(() => {
-    if (activeBattleId && !battleId) openBattle(activeBattleId)
-  }, [activeBattleId, battleId, openBattle])
+    if (activeBattleId && !battleId && activeBattleId !== dismissedBattleId) openBattle(activeBattleId)
+  }, [activeBattleId, battleId, dismissedBattleId, openBattle])
 
   if (enter.data) {
     const cityId = enter.data.id

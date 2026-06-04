@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Battle, BattleHex, BattleUnit } from '../../types/game'
+import type { Battle, BattleHex, BattleUnit, TileType } from '../../types/game'
 import { useBattle, useBattleActions } from '../../queries/useBattle'
 import { useGameUIStore } from '../../stores/useGameUIStore'
 import { errorMessage } from '../../api/client'
@@ -27,6 +27,14 @@ function unitIcon(key: string): string {
   return UNIT_ICONS[key] ?? '⚔️'
 }
 
+// Aparência dos tiles de Lacuna (cor de fundo da casa + ícone + borda). Ordem da legenda.
+const TILE_META: Record<TileType, { icon: string; fill: string; stroke: string }> = {
+  cover: { icon: '🧱', fill: '#243348', stroke: '#4a6c9f' },
+  hazard: { icon: '🌋', fill: '#3e2418', stroke: '#9f6a4a' },
+  warp: { icon: '🌀', fill: '#2c2348', stroke: '#7b6cbf' },
+}
+const TILE_ORDER: TileType[] = ['cover', 'hazard', 'warp']
+
 // Overlay da batalha tática: lê a batalha pelo id do store, renderiza o tabuleiro hex e conduz
 // os turnos do jogador. O servidor é autoritativo — cada ação devolve o estado novo.
 export function BattleView({ cityId }: { cityId: string }) {
@@ -36,6 +44,7 @@ export function BattleView({ cityId }: { cityId: string }) {
   const { data: view, isLoading, isError, error } = useBattle(cityId, battleId)
   const { act, endTurn } = useBattleActions(cityId, battleId)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [inspect, setInspect] = useState<TileType | null>(null)
 
   const battle = view?.state ?? null
   const busy = act.isPending || endTurn.isPending
@@ -62,6 +71,7 @@ export function BattleView({ cityId }: { cityId: string }) {
               selectedId={selectedId}
               disabled={busy || battle.over}
               onSelectUnit={setSelectedId}
+              onInspectTile={setInspect}
               onMove={(unit, hex) => {
                 setSelectedId(null)
                 act.mutate({ unit_id: unit.id, move_to: hex })
@@ -73,6 +83,7 @@ export function BattleView({ cityId }: { cityId: string }) {
                 act.mutate({ unit_id: unit.id, ...opt })
               }}
             />
+            <Legend battle={battle} onInspectTile={setInspect} />
             {(act.isError || endTurn.isError) && (
               <p style={{ color: '#e0884a', fontSize: 13, margin: '6px 0 0' }}>
                 {errorMessage(act.error ?? endTurn.error)}
@@ -87,6 +98,7 @@ export function BattleView({ cityId }: { cityId: string }) {
               }}
               onClose={closeBattle}
             />
+            {inspect && <TileInfo tile={inspect} onClose={() => setInspect(null)} />}
           </>
         )}
       </div>
@@ -112,6 +124,7 @@ function Board({
   selectedId,
   disabled,
   onSelectUnit,
+  onInspectTile,
   onMove,
   onAttack,
 }: {
@@ -119,10 +132,17 @@ function Board({
   selectedId: string | null
   disabled: boolean
   onSelectUnit: (id: string) => void
+  onInspectTile: (tile: TileType) => void
   onMove: (unit: BattleUnit, hex: BattleHex) => void
   onAttack: (unit: BattleUnit, target: BattleUnit) => void
 }) {
   const selected = selectedId ? (battle.units.find((u) => u.id === selectedId) ?? null) : null
+
+  const tileBy = useMemo(() => {
+    const m = new Map<string, TileType>()
+    for (const tl of battle.tiles ?? []) m.set(hexKey(tl.pos), tl.type)
+    return m
+  }, [battle.tiles])
 
   // Conjuntos de destaque (movimento/ataque) recalculados quando muda a seleção.
   const { moveSet, attackSet } = useMemo(() => {
@@ -157,19 +177,35 @@ function Board({
   }, [battle.w, battle.h])
 
   function cellClick(hex: BattleHex) {
-    if (disabled) return
+    const tile = tileBy.get(hexKey(hex))
+    const inspectIfTile = () => {
+      if (tile) onInspectTile(tile)
+    }
+    // Batalha ocupada/encerrada: clicar numa Lacuna só revela sua legenda/história.
+    if (disabled) {
+      inspectIfTile()
+      return
+    }
     const occupant = unitAt(battle, hex)
     // Selecionar/alternar uma unidade comandável.
     if (occupant && canControl(battle, occupant)) {
       onSelectUnit(occupant.id === selectedId ? '' : occupant.id)
       return
     }
-    if (!selected) return
-    if (occupant && occupant.owner !== selected.owner) {
-      if (attackSet.has(hexKey(hex))) onAttack(selected, occupant)
-      return
+    // Com unidade selecionada, a jogada (mover/atacar) tem prioridade sobre inspecionar.
+    if (selected) {
+      if (occupant && occupant.owner !== selected.owner) {
+        if (attackSet.has(hexKey(hex))) onAttack(selected, occupant)
+        else inspectIfTile()
+        return
+      }
+      if (!occupant && moveSet.has(hexKey(hex))) {
+        onMove(selected, hex)
+        return
+      }
     }
-    if (!occupant && moveSet.has(hexKey(hex))) onMove(selected, hex)
+    // Sem jogada aplicável: se a casa é uma Lacuna, mostra a legenda + história.
+    inspectIfTile()
   }
 
   const cells: BattleHex[] = []
@@ -182,18 +218,36 @@ function Board({
         const p = centers.get(k)!
         const isMove = moveSet.has(k)
         const isAttack = attackSet.has(k)
-        const fill = isAttack ? '#5a2c2c' : isMove ? '#2c4a36' : '#171b24'
-        const stroke = isAttack ? '#c2724a' : isMove ? '#4a8f63' : '#2a3140'
+        const tile = tileBy.get(k)
+        const meta = tile ? TILE_META[tile] : null
+        // Fundo = cor do tile (Lacuna) ou neutro; o destaque de ação vira ANEL (stroke) para
+        // não esconder a Lacuna sob a casa.
+        const fill = meta ? meta.fill : '#171b24'
+        const stroke = isAttack ? '#e0593a' : isMove ? '#5ad17a' : meta ? meta.stroke : '#2a3140'
+        const strokeWidth = isMove || isAttack ? 2.5 : meta ? 2 : 1
         return (
-          <polygon
-            key={k}
-            points={hexPoints(p.x, p.y, HEX - 1)}
-            fill={fill}
-            stroke={stroke}
-            strokeWidth={isMove || isAttack ? 2 : 1}
-            style={{ cursor: disabled ? 'default' : 'pointer' }}
-            onClick={() => cellClick(h)}
-          />
+          <g key={k}>
+            <polygon
+              points={hexPoints(p.x, p.y, HEX - 1)}
+              fill={fill}
+              stroke={stroke}
+              strokeWidth={strokeWidth}
+              style={{ cursor: disabled ? 'default' : 'pointer' }}
+              onClick={() => cellClick(h)}
+            />
+            {meta && (
+              <text
+                x={p.x}
+                y={p.y - HEX * 0.5}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={13}
+                style={pointerNone}
+              >
+                {meta.icon}
+              </text>
+            )}
+          </g>
         )
       })}
       {battle.units
@@ -277,6 +331,46 @@ function UnitToken({
   )
 }
 
+// Legenda dos tiles de Lacuna presentes no tabuleiro (só mostra os tipos em jogo). Clicar num
+// item abre a legenda/história do tile (mesma de clicar na casa no tabuleiro).
+function Legend({ battle, onInspectTile }: { battle: Battle; onInspectTile: (tile: TileType) => void }) {
+  const { t } = useTranslation()
+  const present = new Set((battle.tiles ?? []).map((tl) => tl.type))
+  const types = TILE_ORDER.filter((tt) => present.has(tt))
+  if (types.length === 0) return null
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center', marginTop: 10, fontSize: 12, color: '#9aa3b2' }}>
+      {types.map((tt) => (
+        <button key={tt} type="button" onClick={() => onInspectTile(tt)} style={legendItem}>
+          {TILE_META[tt].icon} {t(`battle.tile.${tt}`)}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// TileInfo: painel com o nome, o efeito mecânico e a história (lore) de uma Lacuna.
+function TileInfo({ tile, onClose }: { tile: TileType; onClose: () => void }) {
+  const { t } = useTranslation()
+  return (
+    <div style={tileInfoBackdrop} onClick={onClose}>
+      <div style={tileInfoCard} onClick={(e) => e.stopPropagation()}>
+        <div style={{ fontSize: 28, marginBottom: 4 }}>{TILE_META[tile].icon}</div>
+        <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{t(`battle.tile.${tile}`)}</div>
+        <p style={{ fontSize: 13, fontStyle: 'italic', color: '#c9b88a', margin: '0 0 10px', lineHeight: 1.45 }}>
+          {t(`battle.tile.${tile}_lore`)}
+        </p>
+        <p style={{ fontSize: 13, color: '#cdd4e0', margin: '0 0 14px', lineHeight: 1.4 }}>
+          ⚙ {t(`battle.tile.${tile}_desc`)}
+        </p>
+        <button type="button" onClick={onClose} style={primaryBtn}>
+          {t('battle.tile.close')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function Footer({
   battle,
   busy,
@@ -343,4 +437,39 @@ const primaryBtn: CSSProperties = {
   background: '#2c3a5a',
   color: '#fff',
   cursor: 'pointer',
+}
+
+const legendItem: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
+  padding: '3px 8px',
+  fontSize: 12,
+  color: '#9aa3b2',
+  background: 'transparent',
+  border: '1px solid #2a3140',
+  borderRadius: 999,
+  cursor: 'pointer',
+}
+
+const tileInfoBackdrop: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  zIndex: 60,
+  background: 'rgba(6,8,12,0.6)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+const tileInfoCard: CSSProperties = {
+  width: 320,
+  maxWidth: '88vw',
+  padding: 18,
+  textAlign: 'center',
+  background: '#161a24',
+  border: '1px solid #3a3150',
+  borderRadius: 12,
+  color: '#fff',
+  fontFamily: 'system-ui, sans-serif',
 }

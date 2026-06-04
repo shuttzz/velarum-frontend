@@ -16,7 +16,7 @@ function unit(over: Partial<BattleUnit> & Pick<BattleUnit, 'id' | 'owner' | 'pos
 }
 
 function battle(units: BattleUnit[], over: Partial<Battle> = {}): Battle {
-  return { w: 6, h: 6, units, turn: 'attacker', round: 0, max_rounds: 12, acted: {}, over: false, winner: 'attacker', ...over }
+  return { w: 6, h: 6, units, tiles: [], turn: 'attacker', round: 0, max_rounds: 12, acted: {}, over: false, winner: 'attacker', ...over }
 }
 
 describe('hexDistance', () => {

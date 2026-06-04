@@ -14,6 +14,7 @@ import {
 } from '../catalog'
 import { useNow, secondsUntil } from '../../../lib/useNow'
 import { unitColor } from '../buildingVisual'
+import { BuildingInfo } from './BuildingInfo'
 
 const BARRACKS_KEY = 'canteiro_de_almas'
 
@@ -34,6 +35,9 @@ export function BuildingModal({ city }: { city: City }) {
       onClose={() => selectBuilding(null)}
       width={b.type === BARRACKS_KEY ? 520 : 360}
     >
+      <div style={{ marginBottom: 10 }}>
+        <BuildingInfo buildingKey={b.type} />
+      </div>
       <UpgradeSection city={city} b={b} />
       {b.type === BARRACKS_KEY && <RecruitSection city={city} barracksLevel={b.level} />}
     </Modal>

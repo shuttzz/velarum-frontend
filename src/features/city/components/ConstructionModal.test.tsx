@@ -76,16 +76,21 @@ describe('ConstructionModal', () => {
     expect(screen.queryByText('Lar do Clã')).toBeNull()
   })
 
-  it('clicar num disponível entra em placing e fecha o modal', () => {
+  it('detalhe + Construir: o 1º disponível vem selecionado; Construir entra em placing e fecha', () => {
     const { onClose } = renderModal()
-    fireEvent.click(screen.getByText('Viveiro de Pedra'))
+    // Viveiro de Pedra é o 1º da lista → já selecionado no detalhe; o botão Construir age sobre ele.
+    fireEvent.click(screen.getByRole('button', { name: 'Construir' }))
     expect(useGameUIStore.getState().buildMode).toEqual({ type: 'placing', buildingType: 'viveiro_de_pedra' })
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('edifício com pré-requisito não atendido fica desabilitado (não entra em placing)', () => {
+  it('edifício com pré-requisito não atendido: botão Construir desabilitado (não entra em placing)', () => {
     renderModal()
+    // Seleciona a Fogueira (requer Lar nv2, não atendido) na lista.
     fireEvent.click(screen.getByText('Fogueira Comunal'))
+    const buildBtn = screen.getByRole('button', { name: 'Construir' })
+    expect(buildBtn).toBeDisabled()
+    fireEvent.click(buildBtn)
     expect(useGameUIStore.getState().buildMode).toEqual({ type: 'idle' })
   })
 })

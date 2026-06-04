@@ -63,6 +63,11 @@ export type Side = 'attacker' | 'defender'
 
 export type BattleHex = { q: number; r: number }
 
+// Tile de terreno especial (Lacuna). cover=Abrigo (−dano), hazard=Fenda instável (dano ao
+// entrar), warp=Distorção (reduz ataque à distância). Espelha battle.TileType do backend.
+export type TileType = 'cover' | 'hazard' | 'warp'
+export type BattleTile = { pos: BattleHex; type: TileType }
+
 export type BattleUnit = {
   id: string
   owner: Side
@@ -80,6 +85,7 @@ export type Battle = {
   w: number
   h: number
   units: BattleUnit[]
+  tiles: BattleTile[]
   turn: Side
   round: number
   max_rounds: number

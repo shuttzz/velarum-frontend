@@ -51,7 +51,26 @@
     "editDone": "✓ Done editing",
     "openBtn": "🏗 Build",
     "editHint": "Edit mode: click a building then an empty cell to move it.",
-    "cantAfford": "not enough resources"
+    "cantAfford": "not enough resources",
+    "build": "Build",
+    "selectHint": "Select a building to see its details.",
+    "produces": "+{{rate}}/h {{res}}"
+  },
+  "buildingDesc": {
+    "lar_do_cla": "Heart of the clan. Each level unlocks new buildings and sustains your people.",
+    "viveiro_de_pedra": "Extracts Matter, the raw resource for building and recruiting.",
+    "fogueira_comunal": "Produces Energy, which powers works, rituals and the village's growth.",
+    "pedra_da_memoria": "Generates Knowledge, saved for advanced structures and (soon) research.",
+    "celeiro_de_argila": "Sets the share of resources protected from raids (🛡). Anything above it can be looted.",
+    "canteiro_de_almas": "Lets you recruit troops and sets your army cap. Leveling it raises the cap and unlocks new units."
+  },
+  "buildingLore": {
+    "lar_do_cla": "It was around this fire that the first clan gathered. While it burns, the people have a home.",
+    "viveiro_de_pedra": "Where others see dead rock, the Velari hear the stone breathe and yield its substance.",
+    "fogueira_comunal": "A flame that never dies — from it springs the warmth that moves the whole village.",
+    "pedra_da_memoria": "Every groove holds a memory of the clan. To touch it is to hear the ancestors.",
+    "celeiro_de_argila": "Jars sealed beneath the earth: what is stored deep, the raider cannot take.",
+    "canteiro_de_almas": "Here the souls willing to fight are shaped into warriors of the clan."
   },
   "selected": {
     "levelPos": "level {{level}} · position ({{x}},{{y}})",
@@ -135,7 +154,19 @@
     "resolving": "Resolving…",
     "victory": "Victory!",
     "defeat": "Defeat",
-    "backToMap": "Back to map"
+    "backToMap": "Back to map",
+    "tile": {
+      "cover": "Cover",
+      "cover_desc": "A unit standing here takes 33% less damage.",
+      "cover_lore": "A fold in the veil hardens the air like living stone. Those who shelter in its shadow have blows softened by the very weave of the world.",
+      "hazard": "Unstable rift",
+      "hazard_desc": "Ending your move here deals damage (~10% of HP).",
+      "hazard_lore": "Here the fabric of reality tears open. To cross the rift is to feel the world drag back whatever dared to step on it.",
+      "warp": "Distortion",
+      "warp_desc": "Halves ranged damage against a unit standing here.",
+      "warp_lore": "The air bends into unseen spirals. Arrows and projectiles lose their way, deflected by the breath of the veil.",
+      "close": "Close"
+    }
   },
   "reports": {
     "title": "Reports",
