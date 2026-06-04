@@ -213,6 +213,11 @@ function ProvincePanel({ city, province }: { city: City; province: Province }) {
       <div style={{ fontSize: 12, color: '#9aa3b2' }}>
         {t('map.reward')}: <CostLine amounts={province.reward} />
       </div>
+      {(province.deposit.matter > 0 || province.deposit.energy > 0 || province.deposit.knowledge > 0) && (
+        <div style={{ fontSize: 12, color: province.status === 'conquered' ? '#7fd99b' : '#9aa3b2' }}>
+          {t('map.deposit')}: <CostLine amounts={province.deposit} />/h
+        </div>
+      )}
 
       {/* Marcha em andamento para esta província */}
       {active ? (

@@ -128,6 +128,7 @@ export type Province = {
   def_attack: number
   def_hp: number
   reward: Amounts
+  deposit: Amounts // renda passiva/hora enquanto mantida
   status: 'unconquered' | 'conquered'
 }
 
