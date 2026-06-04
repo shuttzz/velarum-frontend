@@ -119,6 +119,16 @@ export type Report = {
   payload: BattleReport
 }
 
+// Cidade vizinha no mapa-mundo compartilhado.
+export type WorldCity = {
+  id: string
+  name: string
+  region: string
+  coord_x: number
+  coord_y: number
+  username: string
+}
+
 export type Province = {
   id: string
   name_key: string

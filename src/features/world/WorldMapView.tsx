@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { Amounts, City, Province } from '../../types/game'
 import { useCity } from '../../queries/useCity'
 import { useProvinces } from '../../queries/useProvinces'
+import { useWorldCities } from '../../queries/useWorldCities'
 import { useArmyActions } from '../../queries/useGameMutations'
 import { errorMessage } from '../../api/client'
 import { formatDuration, marchQueueUsed, queuesForEra } from '../city/catalog'
@@ -20,6 +21,7 @@ export function WorldMapView({ cityId }: { cityId: string }) {
   const { t } = useTranslation()
   const { data: city } = useCity(cityId)
   const { data: provinces } = useProvinces(cityId)
+  const { data: worldCities } = useWorldCities(!!city)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = provinces?.find((p) => p.id === selectedId) ?? null
 
@@ -43,8 +45,22 @@ export function WorldMapView({ cityId }: { cityId: string }) {
         marching: activeProvinceIds.has(p.id),
       })
     }
+    // Cidades vizinhas (mundo compartilhado), posicionadas RELATIVAS à sua cidade (você = centro).
+    if (city) {
+      for (const n of worldCities ?? []) {
+        if (n.id === city.id) continue // a sua cidade já é o marcador central
+        out.push({
+          id: `nb:${n.id}`,
+          kind: 'neighbor',
+          q: n.coord_x - city.coord_x,
+          r: n.coord_y - city.coord_y,
+          title: n.name,
+          subtitle: `@${n.username}`,
+        })
+      }
+    }
     return out
-  }, [provinces, city?.name, activeProvinceIds, t])
+  }, [provinces, worldCities, city, activeProvinceIds, t])
 
   return (
     <div style={screen}>
