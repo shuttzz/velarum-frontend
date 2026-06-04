@@ -1,6 +1,6 @@
-import { useState, type CSSProperties } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Amounts, City, March, Province } from '../../types/game'
+import type { Amounts, City, Province } from '../../types/game'
 import { useCity } from '../../queries/useCity'
 import { useProvinces } from '../../queries/useProvinces'
 import { useArmyActions } from '../../queries/useGameMutations'
@@ -11,153 +11,49 @@ import { ResourceBar } from '../city/components/ResourceBar'
 import { AccountControls } from '../../components/AccountControls'
 import { ViewNav } from '../../components/ViewNav'
 import { useGameUIStore } from '../../stores/useGameUIStore'
+import { WorldMapCanvas } from '../../game/worldmap/WorldMapCanvas'
+import type { MapHex } from '../../game/worldmap/WorldMapRenderer'
 
-const HEX = 62 // raio do hexágono (px)
-
-// axialToPixel: coordenada hex axial (q,r) → pixel (pointy-top), cidade no centro (0,0).
-function axialToPixel(q: number, r: number) {
-  return { x: HEX * Math.sqrt(3) * (q + r / 2), y: HEX * 1.5 * r }
-}
-
-function hexPoints(cx: number, cy: number, s: number) {
-  const pts = []
-  for (let i = 0; i < 6; i++) {
-    const a = (Math.PI / 180) * (60 * i - 30)
-    pts.push(`${(cx + s * Math.cos(a)).toFixed(1)},${(cy + s * Math.sin(a)).toFixed(1)}`)
-  }
-  return pts.join(' ')
-}
-
-// Tela do mapa do mundo: províncias PvE do anel 1 (mapa instanciado), cidade no centro.
+// Tela do mapa do mundo: cidade no centro + províncias PvE (mapa instanciado), renderizado em
+// PixiJS (pan/zoom). Painel da província + HUD por cima.
 export function WorldMapView({ cityId }: { cityId: string }) {
+  const { t } = useTranslation()
   const { data: city } = useCity(cityId)
   const { data: provinces } = useProvinces(cityId)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = provinces?.find((p) => p.id === selectedId) ?? null
 
+  const activeProvinceIds = useMemo(
+    () => new Set((city?.marches ?? []).filter((m) => m.status !== 'done').map((m) => m.province_id)),
+    [city?.marches],
+  )
+
+  const hexes = useMemo<MapHex[]>(() => {
+    const out: MapHex[] = [{ id: 'city', kind: 'city', q: 0, r: 0, title: city?.name ?? '' }]
+    for (const p of provinces ?? []) {
+      const conquered = p.status === 'conquered'
+      out.push({
+        id: p.id,
+        kind: 'province',
+        q: p.q,
+        r: p.r,
+        title: t(`provinces.${p.name_key}`),
+        subtitle: conquered ? '' : `${p.def_attack}/${p.def_hp}`,
+        status: p.status,
+        marching: activeProvinceIds.has(p.id),
+      })
+    }
+    return out
+  }, [provinces, city?.name, activeProvinceIds, t])
+
   return (
     <div style={screen}>
+      <WorldMapCanvas hexes={hexes} selectedId={selectedId} onSelect={setSelectedId} />
       {city && <ResourceBar city={city} />}
-      <div style={mapWrap}>
-        {provinces && (
-          <HexMap
-            provinces={provinces}
-            marches={city?.marches ?? []}
-            selectedId={selectedId}
-            cityName={city?.name ?? ''}
-            onSelect={setSelectedId}
-          />
-        )}
-      </div>
       {selected && city && <ProvincePanel city={city} province={selected} />}
       <ViewNav />
       <AccountControls style={{ position: 'absolute', bottom: 12, right: 16, pointerEvents: 'auto' }} />
     </div>
-  )
-}
-
-function HexMap({
-  provinces,
-  marches,
-  selectedId,
-  cityName,
-  onSelect,
-}: {
-  provinces: Province[]
-  marches: March[]
-  selectedId: string | null
-  cityName: string
-  onSelect: (id: string) => void
-}) {
-  const { t } = useTranslation()
-  const activeProvinceIds = new Set(marches.filter((m) => m.status !== 'done').map((m) => m.province_id))
-
-  return (
-    <svg viewBox="-190 -172 380 344" style={{ width: 'min(92vw, 820px)', height: 'auto', maxHeight: '76vh' }}>
-      {/* Cidade no centro */}
-      <Hex
-        cx={0}
-        cy={0}
-        fill="#2c3a5a"
-        stroke="#6c8ebf"
-        strokeWidth={2}
-        lines={[
-          { text: '🏛', size: 20 },
-          { text: cityName, size: 11, color: '#cdd4e0' },
-        ]}
-      />
-
-      {provinces.map((p) => {
-        const { x, y } = axialToPixel(p.q, p.r)
-        const conquered = p.status === 'conquered'
-        const marching = activeProvinceIds.has(p.id)
-        const sel = p.id === selectedId
-        const lines: HexLine[] = [
-          { text: conquered ? '✔' : '⚔', size: 15, color: conquered ? '#7fd99b' : '#e09a9a' },
-          { text: t(`provinces.${p.name_key}`), size: 11, weight: 600 },
-        ]
-        if (marching) lines.push({ text: '⏳', size: 13, color: '#e0b04a' })
-        else if (!conquered) lines.push({ text: `${p.def_attack}/${p.def_hp}`, size: 10, color: '#9aa3b2' })
-        return (
-          <Hex
-            key={p.id}
-            cx={x}
-            cy={y}
-            fill={conquered ? '#244a33' : '#4a2c2c'}
-            stroke={sel ? '#e0b04a' : conquered ? '#4a8f63' : '#9f5a5a'}
-            strokeWidth={sel ? 4 : 2}
-            onClick={() => onSelect(p.id)}
-            lines={lines}
-          />
-        )
-      })}
-    </svg>
-  )
-}
-
-type HexLine = { text: string; size: number; color?: string; weight?: number }
-
-// Hex desenha o polígono + um bloco de texto CENTRALIZADO verticalmente (linhas empilhadas
-// em torno do centro do hex), evitando o amontoado de tspans alinhados pela base.
-function Hex({
-  cx,
-  cy,
-  fill,
-  stroke,
-  strokeWidth,
-  onClick,
-  lines,
-}: {
-  cx: number
-  cy: number
-  fill: string
-  stroke: string
-  strokeWidth: number
-  onClick?: () => void
-  lines: HexLine[]
-}) {
-  const lineH = 16
-  const startY = cy - ((lines.length - 1) * lineH) / 2
-  return (
-    <g onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
-      <polygon points={hexPoints(cx, cy, HEX)} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
-      {lines.map((ln, i) => (
-        <text
-          key={i}
-          x={cx}
-          y={startY + i * lineH}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontFamily="system-ui, sans-serif"
-          fontSize={ln.size}
-          fontWeight={ln.weight ?? 400}
-          fill={ln.color ?? '#fff'}
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          {ln.text}
-        </text>
-      ))}
-    </g>
   )
 }
 
@@ -293,14 +189,6 @@ const screen: CSSProperties = {
   height: '100vh',
   background: '#0d1016',
   overflow: 'hidden',
-}
-
-const mapWrap: CSSProperties = {
-  position: 'absolute',
-  inset: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
 }
 
 const panel: CSSProperties = {

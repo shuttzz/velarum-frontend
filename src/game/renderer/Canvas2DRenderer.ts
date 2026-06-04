@@ -172,19 +172,23 @@ export class Canvas2DRenderer implements IRenderer {
 
     ctx.fillStyle = '#1b1f2a'
     ctx.fillRect(0, 0, gpw, gph)
-    ctx.strokeStyle = '#2a3142'
-    ctx.lineWidth = 1
-    for (let gx = 0; gx <= grid_w; gx++) {
-      ctx.beginPath()
-      ctx.moveTo(gx * cell + 0.5, 0)
-      ctx.lineTo(gx * cell + 0.5, gph)
-      ctx.stroke()
-    }
-    for (let gy = 0; gy <= grid_h; gy++) {
-      ctx.beginPath()
-      ctx.moveTo(0, gy * cell + 0.5)
-      ctx.lineTo(gpw, gy * cell + 0.5)
-      ctx.stroke()
+    // Grade só aparece ao CONSTRUIR/MOVER (convenção do gênero: FoE, RoK, Clash…). Ociosa = limpa.
+    const showGrid = st.buildMode.type === 'placing' || st.editMode
+    if (showGrid) {
+      ctx.strokeStyle = '#2a3142'
+      ctx.lineWidth = 1
+      for (let gx = 0; gx <= grid_w; gx++) {
+        ctx.beginPath()
+        ctx.moveTo(gx * cell + 0.5, 0)
+        ctx.lineTo(gx * cell + 0.5, gph)
+        ctx.stroke()
+      }
+      for (let gy = 0; gy <= grid_h; gy++) {
+        ctx.beginPath()
+        ctx.moveTo(0, gy * cell + 0.5)
+        ctx.lineTo(gpw, gy * cell + 0.5)
+        ctx.stroke()
+      }
     }
 
     const font = Math.max(11, Math.floor(cell * 0.18))
