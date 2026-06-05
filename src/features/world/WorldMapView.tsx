@@ -1,6 +1,6 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, useState, type CSSProperties, type Dispatch, type SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Amounts, City, Province, WorldTarget } from '../../types/game'
+import type { Amounts, City, Province, Troop, WorldTarget } from '../../types/game'
 import { useCity } from '../../queries/useCity'
 import { useProvinces } from '../../queries/useProvinces'
 import { useWorldCities } from '../../queries/useWorldCities'
@@ -175,6 +175,45 @@ function resolveOverlaps(hexes: MapHex[]): MapHex[] {
   return out
 }
 
+// TroopSelector: lista a guarnição com um input por unidade + botão MÁX (envia tudo daquele tipo).
+// Compartilhado pelos painéis de província, nó e aldeia/criatura.
+function TroopSelector({
+  troops,
+  send,
+  setSend,
+}: {
+  troops: Troop[]
+  send: Record<string, number>
+  setSend: Dispatch<SetStateAction<Record<string, number>>>
+}) {
+  const { t } = useTranslation()
+  return (
+    <>
+      {troops.map((tr) => (
+        <div key={tr.unit_type} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+          <span style={{ flex: 1, fontSize: 13 }}>
+            {t(`units.${tr.unit_type}`)} <span style={{ color: '#6b7280' }}>({tr.count})</span>
+          </span>
+          <input
+            type="number"
+            min={0}
+            max={tr.count}
+            value={send[tr.unit_type] ?? 0}
+            onChange={(e) => {
+              const v = Math.max(0, Math.min(tr.count, Number(e.target.value) || 0))
+              setSend((s) => ({ ...s, [tr.unit_type]: v }))
+            }}
+            style={input}
+          />
+          <button type="button" onClick={() => setSend((s) => ({ ...s, [tr.unit_type]: tr.count }))} style={maxBtn}>
+            {t('map.max')}
+          </button>
+        </div>
+      ))}
+    </>
+  )
+}
+
 function ProvincePanel({ city, province }: { city: City; province: Province }) {
   const { t } = useTranslation()
   const { data: catalog } = useCatalog()
@@ -265,24 +304,7 @@ function ProvincePanel({ city, province }: { city: City; province: Province }) {
       ) : (
         <div style={{ marginTop: 10 }}>
           <div style={{ fontSize: 12, color: '#9aa3b2', marginBottom: 4 }}>{t('map.selectTroops')}</div>
-          {city.troops.map((tr) => (
-            <div key={tr.unit_type} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <span style={{ flex: 1, fontSize: 13 }}>
-                {t(`units.${tr.unit_type}`)} <span style={{ color: '#6b7280' }}>({tr.count})</span>
-              </span>
-              <input
-                type="number"
-                min={0}
-                max={tr.count}
-                value={send[tr.unit_type] ?? 0}
-                onChange={(e) => {
-                  const v = Math.max(0, Math.min(tr.count, Number(e.target.value) || 0))
-                  setSend((s) => ({ ...s, [tr.unit_type]: v }))
-                }}
-                style={input}
-              />
-            </div>
-          ))}
+          <TroopSelector troops={city.troops} send={send} setSend={setSend} />
           {prediction && <Forecast prediction={prediction} />}
           <div style={{ fontSize: 11, marginTop: 6, color: marchFull ? '#e0b04a' : '#6b7280' }}>
             {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
@@ -369,24 +391,7 @@ function NodePanel({ city, target }: { city: City; target: WorldTarget }) {
       ) : (
         <div style={{ marginTop: 10 }}>
           <div style={{ fontSize: 12, color: '#9aa3b2', marginBottom: 4 }}>{t('map.selectTroops')}</div>
-          {city.troops.map((tr) => (
-            <div key={tr.unit_type} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <span style={{ flex: 1, fontSize: 13 }}>
-                {t(`units.${tr.unit_type}`)} <span style={{ color: '#6b7280' }}>({tr.count})</span>
-              </span>
-              <input
-                type="number"
-                min={0}
-                max={tr.count}
-                value={send[tr.unit_type] ?? 0}
-                onChange={(e) => {
-                  const v = Math.max(0, Math.min(tr.count, Number(e.target.value) || 0))
-                  setSend((s) => ({ ...s, [tr.unit_type]: v }))
-                }}
-                style={input}
-              />
-            </div>
-          ))}
+          <TroopSelector troops={city.troops} send={send} setSend={setSend} />
           {totalSelected > 0 && (
             <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 6, background: 'rgba(0,0,0,0.25)', fontSize: 12 }}>
               <div style={{ color: '#9aa3b2' }}>
@@ -479,24 +484,7 @@ function CombatTargetPanel({ city, target }: { city: City; target: WorldTarget }
       ) : (
         <div style={{ marginTop: 10 }}>
           <div style={{ fontSize: 12, color: '#9aa3b2', marginBottom: 4 }}>{t('map.selectTroops')}</div>
-          {city.troops.map((tr) => (
-            <div key={tr.unit_type} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <span style={{ flex: 1, fontSize: 13 }}>
-                {t(`units.${tr.unit_type}`)} <span style={{ color: '#6b7280' }}>({tr.count})</span>
-              </span>
-              <input
-                type="number"
-                min={0}
-                max={tr.count}
-                value={send[tr.unit_type] ?? 0}
-                onChange={(e) => {
-                  const v = Math.max(0, Math.min(tr.count, Number(e.target.value) || 0))
-                  setSend((s) => ({ ...s, [tr.unit_type]: v }))
-                }}
-                style={input}
-              />
-            </div>
-          ))}
+          <TroopSelector troops={city.troops} send={send} setSend={setSend} />
           {prediction && <Forecast prediction={prediction} />}
           <div style={{ fontSize: 11, marginTop: 6, color: marchFull ? '#e0b04a' : '#6b7280' }}>
             {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
@@ -588,6 +576,16 @@ const input: CSSProperties = {
   border: '1px solid #39415a',
   background: '#11141c',
   color: '#fff',
+}
+
+const maxBtn: CSSProperties = {
+  padding: '4px 8px',
+  fontSize: 11,
+  borderRadius: 6,
+  border: '1px solid #4a5570',
+  background: '#2a3142',
+  color: '#cdd5e3',
+  cursor: 'pointer',
 }
 
 const attackBtn: CSSProperties = {

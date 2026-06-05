@@ -15,13 +15,44 @@ export function ArmyModal({ city, onClose }: { city: City; onClose: () => void }
 
   const used = city.troops.reduce((s, x) => s + x.count, 0) + city.recruits.reduce((s, x) => s + x.count, 0)
   const marches = city.marches.filter((m) => m.status !== 'done')
+  const expeditions = (city.world_marches ?? []).filter((m) => m.status !== 'done')
   const provName = (id: string) => {
     const p = provinces?.find((x) => x.id === id)
     return p ? t(`provinces.${p.name_key}`) : '—'
   }
 
+  // TOTAL de tropas TREINADAS que o jogador possui — onde quer que estejam: guarnição + em marcha
+  // (províncias) + em expedição (coleta/raid). Assim, com tudo coletando, ainda dá pra ver o exército.
+  const totals: Record<string, number> = {}
+  const addRec = (rec: Record<string, number>) => {
+    for (const [k, c] of Object.entries(rec)) if (c > 0) totals[k] = (totals[k] ?? 0) + c
+  }
+  for (const tr of city.troops) if (tr.count > 0) totals[tr.unit_type] = (totals[tr.unit_type] ?? 0) + tr.count
+  for (const m of marches) addRec(m.troops)
+  for (const m of expeditions) addRec(m.troops)
+  const totalEntries = Object.entries(totals).filter(([, c]) => c > 0)
+
   return (
     <Modal title={t('army.title')} onClose={onClose} width={420}>
+      {/* Total (em qualquer lugar) */}
+      <div style={section}>
+        <div style={sectionHead}>
+          <strong>{t('army.total')}</strong>
+        </div>
+        {totalEntries.length === 0 ? (
+          <p style={empty}>{t('military.empty')}</p>
+        ) : (
+          <div style={chips}>
+            {totalEntries.map(([ut, c]) => (
+              <span key={ut} style={chip}>
+                <span style={{ ...dot, background: unitColor(ut) }} />
+                {c}× {t(`units.${ut}`)}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Guarnição */}
       <div style={section}>
         <div style={sectionHead}>
@@ -93,6 +124,49 @@ export function ArmyModal({ city, onClose }: { city: City; onClose: () => void }
           })
         )}
       </div>
+
+      {/* Em expedição (coleta de nó / raid em aldeia ou criatura) */}
+      {expeditions.length > 0 && (
+        <div style={section}>
+          <div style={sectionHead}>
+            <strong>{t('army.expeditions')}</strong>
+          </div>
+          {expeditions.map((m) => {
+            const troops = Object.entries(m.troops)
+              .map(([k, c]) => `${c}× ${t(`units.${k}`)}`)
+              .join(', ')
+            const eta =
+              m.status === 'outbound' ? m.arrive_at : m.status === 'collecting' ? (m.collect_until ?? m.arrive_at) : (m.return_at ?? m.arrive_at)
+            const statusText =
+              m.status === 'outbound'
+                ? t('map.outbound', { time: formatDuration(secondsUntil(eta, now)) })
+                : m.status === 'collecting'
+                  ? t('node.collecting', { time: formatDuration(secondsUntil(eta, now)) })
+                  : t('map.returning', { time: formatDuration(secondsUntil(eta, now)) })
+            const loot = [
+              m.loot.matter ? `${m.loot.matter} ${t('resourceShort.matter')}` : '',
+              m.loot.energy ? `${m.loot.energy} ${t('resourceShort.energy')}` : '',
+              m.loot.knowledge ? `${m.loot.knowledge} ${t('resourceShort.knowledge')}` : '',
+            ]
+              .filter(Boolean)
+              .join(' · ')
+            return (
+              <div key={m.id} style={{ ...row, flexDirection: 'column', alignItems: 'stretch', gap: 2 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>{troops}</span>
+                  {m.status === 'returning' && m.attacker_won != null && (
+                    <span style={{ color: m.attacker_won ? '#5ad17a' : '#e0884a', fontWeight: 600 }}>
+                      {m.attacker_won ? t('map.victory') : t('map.defeat')}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 12, color: '#e0b04a' }}>{statusText}</div>
+                {loot && <div style={{ fontSize: 12, color: '#7fd99b' }}>{t('node.loot')}: {loot}</div>}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </Modal>
   )
 }

@@ -121,8 +121,10 @@
   "army": {
     "openBtn": "🪖 Army",
     "title": "Army",
+    "total": "Total troops",
     "marching": "Marching",
-    "noMarches": "No marches in progress."
+    "noMarches": "No marches in progress.",
+    "expeditions": "On expedition"
   },
   "military": {
     "title": "Army",
@@ -150,6 +152,7 @@
     "attack": "Attack",
     "attacking": "Sending…",
     "selectTroops": "Select troops to send",
+    "max": "Max",
     "noArmy": "Recruit troops in the city first.",
     "outbound": "Marching… arrives in {{time}}",
     "returning": "Returning… arrives in {{time}}",

@@ -121,8 +121,10 @@
   "army": {
     "openBtn": "🪖 Exército",
     "title": "Exército",
+    "total": "Total de tropas",
     "marching": "Em marcha",
-    "noMarches": "Nenhuma marcha em andamento."
+    "noMarches": "Nenhuma marcha em andamento.",
+    "expeditions": "Em expedição"
   },
   "military": {
     "title": "Exército",
@@ -150,6 +152,7 @@
     "attack": "Atacar",
     "attacking": "Enviando…",
     "selectTroops": "Selecione as tropas para enviar",
+    "max": "Máx",
     "noArmy": "Recrute tropas na cidade primeiro.",
     "outbound": "Marchando… chega em {{time}}",
     "returning": "Voltando… chega em {{time}}",
