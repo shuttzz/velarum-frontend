@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Amounts, BattleReport, CollectReport, Report } from '../../types/game'
+import type { Amounts, BattleReport, CollectReport, RaidReport, Report } from '../../types/game'
 import { useReports, useMarkReportsRead } from '../../queries/useReports'
 
 // Caixa de relatórios (sobreposta a qualquer tela): botão com badge de não-lidos, painel com
@@ -49,7 +49,15 @@ function ReportsPanel({ reports, onClose }: { reports: Report[]; onClose: () => 
         <p style={{ color: '#9aa3b2', fontSize: 13 }}>{t('reports.empty')}</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {reports.map((r) => (r.type === 'collection' ? <CollectEntry key={r.id} r={r} /> : <BattleEntry key={r.id} r={r} />))}
+          {reports.map((r) =>
+            r.type === 'collection' ? (
+              <CollectEntry key={r.id} r={r} />
+            ) : r.type === 'raid' ? (
+              <RaidEntry key={r.id} r={r} />
+            ) : (
+              <BattleEntry key={r.id} r={r} />
+            ),
+          )}
         </div>
       )}
     </div>
@@ -72,6 +80,31 @@ function CollectEntry({ r }: { r: Report }) {
       <div style={{ fontSize: 12, color: '#9aa3b2' }}>
         {Math.round(c.collected)} {t(`resourceShort.${c.resource}`)}
       </div>
+    </div>
+  )
+}
+
+function RaidEntry({ r }: { r: Report }) {
+  const { t } = useTranslation()
+  const c = r.payload as RaidReport
+  const losses = Object.entries(c.losses)
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => `${n} ${t(`units.${k}`)}`)
+    .join(', ')
+  const hasLoot = !!(c.loot.matter || c.loot.energy || c.loot.knowledge)
+  return (
+    <div style={entry}>
+      <div style={{ fontWeight: 600, color: c.won ? '#5ad17a' : '#e0884a' }}>
+        {c.won ? t('map.victory') : t('map.defeat')} · {t(`target.${c.target_kind}`)}
+      </div>
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+        {t('reports.losses')}: {losses || t('reports.none')}
+      </div>
+      {c.won && hasLoot && (
+        <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+          {t('reports.reward')}: <Reward a={c.loot} />
+        </div>
+      )}
     </div>
   )
 }
@@ -128,6 +161,15 @@ function ReportToaster({ reports }: { reports: Report[] }) {
   }, [toast])
 
   if (!toast) return null
+  if (toast.type === 'raid') {
+    const c = toast.payload as RaidReport
+    return (
+      <div style={toastStyle} onClick={() => setToast(null)} role="status">
+        <strong style={{ color: c.won ? '#5ad17a' : '#e0884a' }}>{c.won ? t('map.victory') : t('map.defeat')}</strong> ·{' '}
+        {t(`target.${c.target_kind}`)}
+      </div>
+    )
+  }
   if (toast.type === 'collection') {
     const c = toast.payload as CollectReport
     return (

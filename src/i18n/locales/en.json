@@ -210,6 +210,10 @@
     "willCollect": "Will gather",
     "hint": "More troops carry more and drain a small node faster. Filling full load takes the same time."
   },
+  "target": {
+    "village": "Hostile village",
+    "creature": "Rift creature"
+  },
   "forecast": {
     "certain_win": "Certain win",
     "win": "Victory",

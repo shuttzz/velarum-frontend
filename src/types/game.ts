@@ -35,26 +35,32 @@ export type March = {
   return_at: string | null
 }
 
-// Alvo PvE do mundo COMPARTILHADO (SW2). Por ora só 'node' (nó de recurso, coleta estilo RoK).
+// Alvo PvE do mundo COMPARTILHADO (SW2). 'node' = nó de recurso (coleta); 'village'/'creature' =
+// alvo de combate one-shot (ataque → loot → consumido).
+export type WorldTargetKind = 'node' | 'village' | 'creature'
 export type WorldTarget = {
   id: string
-  kind: 'node'
+  kind: WorldTargetKind
   resource: 'matter' | 'energy' | 'knowledge'
   level: number
   coord_x: number
   coord_y: number
   amount_total: number
   amount_remaining: number
+  def_attack: number // combate: defesa agregada
+  def_hp: number
+  reward: Amounts // combate: loot ao matar
   status: 'idle' | 'occupied' | 'depleted'
 }
 
-// Marcha a um nó do mundo (ida → coleta → volta com loot).
+// Marcha a um alvo do mundo (ida → coleta/combate → volta com loot).
 export type WorldMarch = {
   id: string
   target_id: string
   status: 'outbound' | 'collecting' | 'returning' | 'done'
   troops: Record<string, number>
   loot: Amounts
+  attacker_won: boolean | null // raid: venceu? null = marcha de coleta (nó)
   arrive_at: string
   collect_until: string | null
   return_at: string | null
@@ -147,12 +153,22 @@ export type CollectReport = {
   bounced: boolean // nó ocupado/esgotado ao chegar → voltou sem coletar
 }
 
+// Relatório de ataque a uma aldeia/criatura (combate one-shot).
+export type RaidReport = {
+  target_id: string
+  target_kind: string // village | creature
+  won: boolean
+  loot: Amounts
+  sent: Record<string, number>
+  losses: Record<string, number>
+}
+
 export type Report = {
   id: string
   type: string
   read: boolean
   created_at: string
-  payload: BattleReport | CollectReport
+  payload: BattleReport | CollectReport | RaidReport
 }
 
 // Cidade vizinha no mapa-mundo compartilhado.

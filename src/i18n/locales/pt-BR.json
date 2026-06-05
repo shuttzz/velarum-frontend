@@ -210,6 +210,10 @@
     "willCollect": "Vai coletar",
     "hint": "Mais tropas carregam mais e drenam um nó pequeno mais rápido. Encher a carga cheia leva o mesmo tempo."
   },
+  "target": {
+    "village": "Aldeia hostil",
+    "creature": "Criatura da Lacuna"
+  },
   "forecast": {
     "certain_win": "Vitória certa",
     "win": "Vitória",

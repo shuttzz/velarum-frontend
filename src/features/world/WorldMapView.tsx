@@ -76,21 +76,28 @@ export function WorldMapView({ cityId }: { cityId: string }) {
           subtitle: `@${n.username}`,
         })
       }
-      // Nós de recurso (PvE compartilhado), também relativos à sua cidade.
+      // Alvos PvE compartilhados (nós de recurso + aldeias/criaturas), relativos à sua cidade.
       for (const tg of worldTargets ?? []) {
-        out.push({
-          id: `nd:${tg.id}`,
-          kind: 'node',
-          q: tg.coord_x - city.coord_x,
-          r: tg.coord_y - city.coord_y,
-          title: `${t(`resourceShort.${tg.resource}`)} ${'★'.repeat(tg.level)}`,
-          subtitle: tg.status === 'occupied' ? t('node.occupied') : `${Math.round(tg.amount_remaining)}`,
-          resource: tg.resource,
-          marching: activeNodeIds.has(tg.id),
-        })
+        const base = { id: `nd:${tg.id}`, q: tg.coord_x - city.coord_x, r: tg.coord_y - city.coord_y, marching: activeNodeIds.has(tg.id) }
+        if (tg.kind === 'node') {
+          out.push({
+            ...base,
+            kind: 'node',
+            title: `${t(`resourceShort.${tg.resource}`)} ${'★'.repeat(tg.level)}`,
+            subtitle: tg.status === 'occupied' ? t('node.occupied') : `${Math.round(tg.amount_remaining)}`,
+            resource: tg.resource,
+          })
+        } else {
+          out.push({
+            ...base,
+            kind: tg.kind,
+            title: `${t(`target.${tg.kind}`)} ${'★'.repeat(tg.level)}`,
+            subtitle: `⚔ ${tg.def_attack} · ♥ ${tg.def_hp}`,
+          })
+        }
       }
     }
-    return out
+    return resolveOverlaps(out)
   }, [provinces, worldCities, worldTargets, city, activeProvinceIds, activeNodeIds, t])
 
   return (
@@ -105,7 +112,7 @@ export function WorldMapView({ cityId }: { cityId: string }) {
       />
       {city && <ResourceBar city={city} />}
       {selected && !worldView && city && <ProvincePanel city={city} province={selected} />}
-      {selectedTarget && !worldView && city && <NodePanel city={city} target={selectedTarget} />}
+      {selectedTarget && !worldView && city && (selectedTarget.kind === 'node' ? <NodePanel city={city} target={selectedTarget} /> : <CombatTargetPanel city={city} target={selectedTarget} />)}
       <button onClick={() => setWorldView((v) => !v)} style={worldToggleBtn}>
         {worldView ? t('worldmap.viewRegion') : t('worldmap.viewWorld')}
       </button>
@@ -113,6 +120,59 @@ export function WorldMapView({ cityId }: { cityId: string }) {
       <AccountControls style={{ position: 'absolute', bottom: 12, right: 16, pointerEvents: 'auto' }} />
     </div>
   )
+}
+
+// Direções axiais (pointy-top) para varrer anéis ao redor de uma célula.
+const HEX_DIRS = [
+  [1, 0],
+  [1, -1],
+  [0, -1],
+  [-1, 0],
+  [-1, 1],
+  [0, 1],
+]
+
+// nearestFreeCell acha a célula axial livre mais próxima de (q,r), varrendo anéis crescentes.
+function nearestFreeCell(q: number, r: number, occupied: Set<string>): { q: number; r: number } {
+  for (let radius = 1; radius < 30; radius++) {
+    let cq = q + HEX_DIRS[4][0] * radius
+    let cr = r + HEX_DIRS[4][1] * radius
+    for (let side = 0; side < 6; side++) {
+      for (let i = 0; i < radius; i++) {
+        if (!occupied.has(`${cq},${cr}`)) return { q: cq, r: cr }
+        cq += HEX_DIRS[side][0]
+        cr += HEX_DIRS[side][1]
+      }
+    }
+  }
+  return { q, r }
+}
+
+// resolveOverlaps garante que NENHUM marcador fique na mesma célula. Cidade e províncias (posições
+// próprias do jogador) ficam fixas; vizinhos/nós/aldeias/criaturas que caírem numa célula ocupada
+// são empurrados para a célula livre mais próxima — evita alvos sobrepostos/escondidos no mapa.
+// (Províncias usam coords locais e alvos do mundo coords relativas: podem coincidir.)
+function resolveOverlaps(hexes: MapHex[]): MapHex[] {
+  const occupied = new Set<string>()
+  const out: MapHex[] = []
+  for (const h of hexes) {
+    if (h.kind === 'city' || h.kind === 'province') {
+      occupied.add(`${h.q},${h.r}`)
+      out.push(h)
+    }
+  }
+  for (const h of hexes) {
+    if (h.kind === 'city' || h.kind === 'province') continue
+    let { q, r } = h
+    if (occupied.has(`${q},${r}`)) {
+      const free = nearestFreeCell(q, r, occupied)
+      q = free.q
+      r = free.r
+    }
+    occupied.add(`${q},${r}`)
+    out.push({ ...h, q, r })
+  }
+  return out
 }
 
 function ProvincePanel({ city, province }: { city: City; province: Province }) {
@@ -345,6 +405,106 @@ function NodePanel({ city, target }: { city: City; target: WorldTarget }) {
             {collect.isPending ? t('node.sending') : t('node.collect')}
           </button>
           <p style={{ fontSize: 11, color: '#6b7280', margin: '6px 0 0' }}>{t('node.hint')}</p>
+          {collect.isError && (
+            <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>{errorMessage(collect.error)}</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Painel de ALVO DE COMBATE (aldeia/criatura): defesa + loot + previsão (Forecast) + atacar.
+function CombatTargetPanel({ city, target }: { city: City; target: WorldTarget }) {
+  const { t } = useTranslation()
+  const { data: catalog } = useCatalog()
+  const { collect } = useArmyActions(city.id)
+  const now = useNow()
+  const active = city.world_marches.find((m) => m.target_id === target.id && m.status !== 'done')
+  const [send, setSend] = useState<Record<string, number>>({})
+
+  function doAttack() {
+    const troops: Record<string, number> = {}
+    for (const [k, v] of Object.entries(send)) if (v > 0) troops[k] = v
+    if (Object.keys(troops).length === 0) return
+    collect.mutate({ target_id: target.id, troops }, { onSuccess: () => setSend({}) })
+  }
+
+  const prediction = useMemo<Prediction | null>(() => {
+    const troops: Record<string, number> = {}
+    for (const [k, v] of Object.entries(send)) if (v > 0) troops[k] = v
+    if (Object.keys(troops).length === 0 || !catalog) return null
+    const stat = (key: string) => {
+      const u = catalog.units.find((x) => x.key === key)
+      return u ? { attack: u.attack, hp: u.hp } : undefined
+    }
+    return predictAutoResolve(troops, stat, { attack: target.def_attack, hp: target.def_hp })
+  }, [send, catalog, target.def_attack, target.def_hp])
+
+  const totalSelected = Object.values(send).reduce((a, b) => a + b, 0)
+  const marchLimit = queuesForEra(city.era)
+  const marchUsed = marchQueueUsed(city)
+  const marchFull = marchUsed >= marchLimit
+  const hasReward = !!(target.reward.matter || target.reward.energy || target.reward.knowledge)
+
+  return (
+    <div style={panel}>
+      <div style={{ fontWeight: 600 }}>
+        {t(`target.${target.kind}`)} {'★'.repeat(target.level)}
+      </div>
+      <div style={{ fontSize: 12, marginTop: 4 }}>
+        {t('map.defense')}: ⚔ {target.def_attack} · ♥ {target.def_hp}
+      </div>
+      {hasReward && (
+        <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+          {t('map.reward')}: <CostLine amounts={target.reward} />
+        </div>
+      )}
+
+      {active ? (
+        <div style={{ marginTop: 10, fontSize: 13 }}>
+          {active.status === 'returning' && active.attacker_won != null && (
+            <div style={{ color: active.attacker_won ? '#5ad17a' : '#e0884a', fontWeight: 600 }}>
+              {active.attacker_won ? t('map.victory') : t('map.defeat')}
+            </div>
+          )}
+          <div style={{ color: '#e0b04a' }}>
+            {active.status === 'outbound'
+              ? t('map.outbound', { time: formatDuration(secondsUntil(active.arrive_at, now)) })
+              : t('map.returning', { time: formatDuration(secondsUntil(active.return_at ?? active.arrive_at, now)) })}
+          </div>
+        </div>
+      ) : city.troops.length === 0 ? (
+        <p style={{ fontSize: 12, color: '#c2724a', marginTop: 10 }}>{t('map.noArmy')}</p>
+      ) : (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ fontSize: 12, color: '#9aa3b2', marginBottom: 4 }}>{t('map.selectTroops')}</div>
+          {city.troops.map((tr) => (
+            <div key={tr.unit_type} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ flex: 1, fontSize: 13 }}>
+                {t(`units.${tr.unit_type}`)} <span style={{ color: '#6b7280' }}>({tr.count})</span>
+              </span>
+              <input
+                type="number"
+                min={0}
+                max={tr.count}
+                value={send[tr.unit_type] ?? 0}
+                onChange={(e) => {
+                  const v = Math.max(0, Math.min(tr.count, Number(e.target.value) || 0))
+                  setSend((s) => ({ ...s, [tr.unit_type]: v }))
+                }}
+                style={input}
+              />
+            </div>
+          ))}
+          {prediction && <Forecast prediction={prediction} />}
+          <div style={{ fontSize: 11, marginTop: 6, color: marchFull ? '#e0b04a' : '#6b7280' }}>
+            {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
+            {marchFull && ` · ${t('map.marchQueueFull')}`}
+          </div>
+          <button onClick={doAttack} disabled={collect.isPending || totalSelected === 0 || marchFull} style={attackBtn}>
+            {collect.isPending ? t('map.attacking') : t('map.attack')}
+          </button>
           {collect.isError && (
             <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>{errorMessage(collect.error)}</p>
           )}

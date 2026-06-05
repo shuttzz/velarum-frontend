@@ -16,7 +16,7 @@ const REGION_COLORS = [0x6a7a3a, 0x6b6b72, 0x3a6a7a, 0x6a3a7a]
 
 export type MapHex = {
   id: string
-  kind: 'city' | 'province' | 'neighbor' | 'node'
+  kind: 'city' | 'province' | 'neighbor' | 'node' | 'village' | 'creature'
   q: number
   r: number
   title: string
@@ -51,6 +51,9 @@ function hexPoly(s: number): number[] {
 const NODE_FILL: Record<string, number> = { matter: 0x4a3a26, energy: 0x4a4326, knowledge: 0x26384a }
 const NODE_STROKE: Record<string, number> = { matter: 0xc79a5a, energy: 0xd8c25a, knowledge: 0x5aa0d8 }
 
+// Glyph central por tipo de POI — desambigua os alvos além da cor (nó/aldeia/criatura).
+const POI_ICON: Partial<Record<MapHex['kind'], string>> = { node: '◆', village: '⌂', creature: '☠' }
+
 function paletteFor(h: MapHex, selected: boolean): { fill: number; stroke: number } {
   if (h.kind === 'city') return { fill: 0x2c3a5a, stroke: selected ? 0xe0b04a : 0x8fb0e0 }
   if (h.kind === 'neighbor') return { fill: 0x32384a, stroke: 0x6b7686 } // cidade vizinha (neutra)
@@ -58,6 +61,8 @@ function paletteFor(h: MapHex, selected: boolean): { fill: number; stroke: numbe
     const res = h.resource ?? 'matter'
     return { fill: NODE_FILL[res], stroke: selected ? 0xe0b04a : NODE_STROKE[res] }
   }
+  if (h.kind === 'village') return { fill: 0x4a3a1e, stroke: selected ? 0xe0b04a : 0xe0953a } // aldeia hostil (laranja — distinta da província vermelha)
+  if (h.kind === 'creature') return { fill: 0x3a2c4a, stroke: selected ? 0xe0b04a : 0xa06ad0 } // criatura da Lacuna (roxo)
   if (h.status === 'conquered') return { fill: 0x244a33, stroke: selected ? 0xe0b04a : 0x5fbf85 }
   return { fill: 0x4a2c2c, stroke: selected ? 0xe0b04a : 0xc27a7a }
 }
@@ -148,14 +153,14 @@ export class WorldMapRenderer {
       const { x, y } = axialToPixel(h.q, h.r)
       const selected = h.id === state.selectedId
       const isCity = h.kind === 'city'
-      const r = isCity ? 27 : h.kind === 'neighbor' ? 18 : h.kind === 'node' ? 19 : MARKER_R
+      const r = isCity ? 27 : h.kind === 'neighbor' ? 18 : h.kind === 'node' || h.kind === 'village' || h.kind === 'creature' ? 19 : MARKER_R
       const pal = paletteFor(h, selected)
 
       const m = new Graphics()
       if (selected) m.poly(hexPoly(HEX)).stroke({ width: 2, color: 0xe0b04a, alpha: 0.45 }) // revela o hex
       m.circle(0, 0, r).fill(pal.fill).stroke({ width: selected ? 4 : 2.5, color: h.marching ? 0xe0b04a : pal.stroke })
       m.position.set(x, y)
-      if (h.kind === 'province' || h.kind === 'node') {
+      if (h.kind === 'province' || h.kind === 'node' || h.kind === 'village' || h.kind === 'creature') {
         m.eventMode = 'static'
         m.cursor = 'pointer'
         m.on('pointertap', (e: FederatedPointerEvent) => {
@@ -164,6 +169,16 @@ export class WorldMapRenderer {
         })
       }
       this.content.addChild(m)
+
+      // Glyph central (desambigua nó/aldeia/criatura).
+      const icon = POI_ICON[h.kind]
+      if (icon) {
+        const ic = new Text({ text: icon, style: { fontFamily: 'system-ui, sans-serif', fontSize: 17, fontWeight: '700', fill: 0xffffff } })
+        ic.anchor.set(0.5)
+        ic.position.set(x, y)
+        ic.eventMode = 'none'
+        this.content.addChild(ic)
+      }
 
       const title = new Text({
         text: h.title,
