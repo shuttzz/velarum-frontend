@@ -60,6 +60,7 @@ export type WorldMarch = {
   target_id: string
   status: 'outbound' | 'collecting' | 'returning' | 'done'
   troops: Record<string, number>
+  survivors: Record<string, number> | null // tropas que voltam (pós-combate em raid)
   loot: Amounts
   attacker_won: boolean | null // raid: venceu? null = marcha de coleta (nó)
   arrive_at: string

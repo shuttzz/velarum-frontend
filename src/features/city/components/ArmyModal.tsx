@@ -7,7 +7,13 @@ import { useNow, secondsUntil } from '../../../lib/useNow'
 import { formatDuration } from '../catalog'
 import { unitColor } from '../buildingVisual'
 
-// Modal de visão geral do Exército: guarnição (tropas na cidade), em treinamento e em marcha.
+// liveTroops: tropas que ainda EXISTEM nesta marcha — sobreviventes pós-combate ao voltar (raid/
+// batalha), senão as enviadas (em ida/coleta ninguém morreu ainda). Mantém o Total exato.
+function liveTroops(m: { status: string; troops: Record<string, number>; survivors: Record<string, number> | null }): Record<string, number> {
+  return m.status === 'returning' && m.survivors ? m.survivors : m.troops
+}
+
+// Modal de visão geral do Exército: total, guarnição, em treinamento, em marcha e em expedição.
 export function ArmyModal({ city, onClose }: { city: City; onClose: () => void }) {
   const { t } = useTranslation()
   const { data: provinces } = useProvinces(city.id)
@@ -28,8 +34,8 @@ export function ArmyModal({ city, onClose }: { city: City; onClose: () => void }
     for (const [k, c] of Object.entries(rec)) if (c > 0) totals[k] = (totals[k] ?? 0) + c
   }
   for (const tr of city.troops) if (tr.count > 0) totals[tr.unit_type] = (totals[tr.unit_type] ?? 0) + tr.count
-  for (const m of marches) addRec(m.troops)
-  for (const m of expeditions) addRec(m.troops)
+  for (const m of marches) addRec(liveTroops(m))
+  for (const m of expeditions) addRec(liveTroops(m))
   const totalEntries = Object.entries(totals).filter(([, c]) => c > 0)
 
   return (
@@ -99,7 +105,7 @@ export function ArmyModal({ city, onClose }: { city: City; onClose: () => void }
           <p style={empty}>{t('army.noMarches')}</p>
         ) : (
           marches.map((m) => {
-            const troops = Object.entries(m.troops)
+            const troops = Object.entries(liveTroops(m))
               .map(([k, c]) => `${c}× ${t(`units.${k}`)}`)
               .join(', ')
             const eta = m.status === 'outbound' ? m.arrive_at : (m.return_at ?? m.arrive_at)
@@ -132,7 +138,7 @@ export function ArmyModal({ city, onClose }: { city: City; onClose: () => void }
             <strong>{t('army.expeditions')}</strong>
           </div>
           {expeditions.map((m) => {
-            const troops = Object.entries(m.troops)
+            const troops = Object.entries(liveTroops(m))
               .map(([k, c]) => `${c}× ${t(`units.${k}`)}`)
               .join(', ')
             const eta =
