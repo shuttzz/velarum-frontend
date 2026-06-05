@@ -171,6 +171,9 @@
     "victory": "Victory!",
     "defeat": "Defeat",
     "backToMap": "Back to map",
+    "victoryPoints": "Victory on points",
+    "defeatPoints": "Defeat on points",
+    "roundLimitNote": "Round limit reached — decided by HP; the enemy survived.",
     "tile": {
       "cover": "Cover",
       "cover_desc": "A unit standing here takes 33% less damage.",
@@ -189,7 +192,30 @@
     "empty": "No reports yet.",
     "losses": "Losses",
     "none": "none",
-    "reward": "Reward"
+    "reward": "Reward",
+    "collected": "Gathering complete",
+    "collectBounced": "Troops returned without gathering (node occupied or depleted)."
+  },
+  "node": {
+    "title": "{{resource}} node · level {{level}}",
+    "remaining": "Remaining",
+    "occupied": "Occupied by another army",
+    "collect": "Gather",
+    "sending": "Sending…",
+    "outbound": "Marching… arrives in {{time}}",
+    "collecting": "Gathering… finishes in {{time}}",
+    "returning": "Returning… arrives in {{time}}",
+    "loot": "Carrying",
+    "capacity": "Carry capacity",
+    "willCollect": "Will gather",
+    "hint": "More troops carry more and drain a small node faster. Filling full load takes the same time."
+  },
+  "forecast": {
+    "certain_win": "Certain win",
+    "win": "Victory",
+    "risky": "Risky",
+    "no_chance": "No chance",
+    "suicide": "Suicide"
   },
   "provinces": {
     "clareira_dos_ecos": "Glade of Echoes",
@@ -209,6 +235,8 @@
     "no_troops": "Not enough troops in the garrison.",
     "province_conquered": "Province already conquered.",
     "province_not_found": "Province not found.",
+    "target_not_found": "Node not found.",
+    "target_depleted": "Node depleted.",
     "queue_full": "Queue limit reached — wait for an operation to finish.",
     "battle_active": "A battle is already in progress.",
     "battle_not_found": "Battle not found.",

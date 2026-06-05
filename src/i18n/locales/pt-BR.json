@@ -171,6 +171,9 @@
     "victory": "Vitória!",
     "defeat": "Derrota",
     "backToMap": "Voltar ao mapa",
+    "victoryPoints": "Vitória por pontos",
+    "defeatPoints": "Derrota por pontos",
+    "roundLimitNote": "Limite de rounds atingido — decidida por HP; o inimigo sobreviveu.",
     "tile": {
       "cover": "Abrigo",
       "cover_desc": "Unidade parada aqui sofre 33% menos dano.",
@@ -189,7 +192,30 @@
     "empty": "Nenhum relatório ainda.",
     "losses": "Perdas",
     "none": "nenhuma",
-    "reward": "Recompensa"
+    "reward": "Recompensa",
+    "collected": "Coleta concluída",
+    "collectBounced": "Tropas voltaram sem coletar (nó ocupado ou esgotado)."
+  },
+  "node": {
+    "title": "Nó de {{resource}} · nível {{level}}",
+    "remaining": "Restante",
+    "occupied": "Ocupado por outro exército",
+    "collect": "Coletar",
+    "sending": "Enviando…",
+    "outbound": "Marchando… chega em {{time}}",
+    "collecting": "Coletando… termina em {{time}}",
+    "returning": "Voltando… chega em {{time}}",
+    "loot": "Carregando",
+    "capacity": "Capacidade de carga",
+    "willCollect": "Vai coletar",
+    "hint": "Mais tropas carregam mais e drenam um nó pequeno mais rápido. Encher a carga cheia leva o mesmo tempo."
+  },
+  "forecast": {
+    "certain_win": "Vitória certa",
+    "win": "Vitória",
+    "risky": "Arriscado",
+    "no_chance": "Sem chances",
+    "suicide": "Suicídio"
   },
   "provinces": {
     "clareira_dos_ecos": "Clareira dos Ecos",
@@ -209,6 +235,8 @@
     "no_troops": "Tropas insuficientes na guarnição.",
     "province_conquered": "Província já conquistada.",
     "province_not_found": "Província não encontrada.",
+    "target_not_found": "Nó não encontrado.",
+    "target_depleted": "Nó esgotado.",
     "queue_full": "Limite de filas atingido — aguarde uma operação terminar.",
     "battle_active": "Já há uma batalha em andamento.",
     "battle_not_found": "Batalha não encontrada.",

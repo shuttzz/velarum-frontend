@@ -116,6 +116,14 @@ export function useArmyActions(cityId: string) {
       void qc.invalidateQueries({ queryKey: queryKeys.provinces(cityId) })
     },
   })
+  // Coletar num nó do mundo compartilhado (SW2): envia tropas → coleta por tempo → volta com loot.
+  const collect = useMutation({
+    mutationFn: (p: { target_id: string; troops: Record<string, number> }) => citiesApi.collect(cityId, p),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.city(cityId) })
+      void qc.invalidateQueries({ queryKey: ['world-targets'] })
+    },
+  })
   // Batalha tática: inicia a batalha (debita a guarnição no servidor) contra a província. A
   // resposta traz a BattleView; o chamador abre o overlay com view.id.
   const startBattle = useMutation({
@@ -154,5 +162,5 @@ export function useArmyActions(cityId: string) {
     onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.city(cityId) }),
   })
 
-  return { recruit, march, startBattle, cancelRecruit }
+  return { recruit, march, collect, startBattle, cancelRecruit }
 }

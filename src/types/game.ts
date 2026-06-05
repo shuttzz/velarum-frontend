@@ -35,6 +35,31 @@ export type March = {
   return_at: string | null
 }
 
+// Alvo PvE do mundo COMPARTILHADO (SW2). Por ora só 'node' (nó de recurso, coleta estilo RoK).
+export type WorldTarget = {
+  id: string
+  kind: 'node'
+  resource: 'matter' | 'energy' | 'knowledge'
+  level: number
+  coord_x: number
+  coord_y: number
+  amount_total: number
+  amount_remaining: number
+  status: 'idle' | 'occupied' | 'depleted'
+}
+
+// Marcha a um nó do mundo (ida → coleta → volta com loot).
+export type WorldMarch = {
+  id: string
+  target_id: string
+  status: 'outbound' | 'collecting' | 'returning' | 'done'
+  troops: Record<string, number>
+  loot: Amounts
+  arrive_at: string
+  collect_until: string | null
+  return_at: string | null
+}
+
 export type City = {
   id: string
   player_id: string
@@ -53,6 +78,7 @@ export type City = {
   recruits: RecruitQueued[]
   army_cap: number
   marches: March[]
+  world_marches: WorldMarch[]
   active_battle_id: string
   server_now: string
 }
@@ -92,6 +118,7 @@ export type Battle = {
   acted: Record<string, boolean>
   over: boolean
   winner: Side
+  by_round_limit: boolean // terminou pelo TETO de rounds (decidida por HP, inimigo ainda vivo)
 }
 
 export type BattleView = {
@@ -111,12 +138,21 @@ export type BattleReport = {
   reward: Amounts
 }
 
+// Relatório de coleta de um nó (resultado de uma marcha a um world_target).
+export type CollectReport = {
+  target_id: string
+  resource: string // "" quando bounce
+  collected: number
+  sent: Record<string, number>
+  bounced: boolean // nó ocupado/esgotado ao chegar → voltou sem coletar
+}
+
 export type Report = {
   id: string
   type: string
   read: boolean
   created_at: string
-  payload: BattleReport
+  payload: BattleReport | CollectReport
 }
 
 // Cidade vizinha no mapa-mundo compartilhado.
@@ -178,6 +214,8 @@ export type CatalogUnit = {
   cost: Amounts
   recruit_time: number
   min_barracks_level: number
+  carry: number // capacidade de carga (coleta de nós)
+  gather_rate: number // taxa de coleta por unidade (recurso/s)
   era: number
 }
 

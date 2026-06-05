@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { BattleHex, BattleView, BuildQueued, City, March, Province, Report, WorldCity } from '../types/game'
+import type { BattleHex, BattleView, BuildQueued, City, March, Province, Report, WorldCity, WorldMarch, WorldTarget } from '../types/game'
 
 export const citiesApi = {
   getCity: (cityId: string) => api.get<City>(`/cities/${cityId}`),
@@ -23,6 +23,11 @@ export const citiesApi = {
     api.postVoid(`/cities/${cityId}/recruits/${recruitId}/cancel`, {}),
 
   getWorldCities: () => api.get<WorldCity[]>(`/world/cities`),
+
+  getWorldTargets: () => api.get<WorldTarget[]>(`/world/targets`),
+
+  collect: (cityId: string, body: { target_id: string; troops: Record<string, number> }) =>
+    api.post<WorldMarch>(`/cities/${cityId}/collect`, body),
 
   getProvinces: (cityId: string) => api.get<Province[]>(`/cities/${cityId}/provinces`),
 

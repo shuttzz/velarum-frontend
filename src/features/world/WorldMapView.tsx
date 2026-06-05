@@ -1,10 +1,13 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Amounts, City, Province } from '../../types/game'
+import type { Amounts, City, Province, WorldTarget } from '../../types/game'
 import { useCity } from '../../queries/useCity'
 import { useProvinces } from '../../queries/useProvinces'
 import { useWorldCities } from '../../queries/useWorldCities'
+import { useWorldTargets } from '../../queries/useWorldTargets'
+import { useCatalog } from '../../queries/useCatalog'
 import { useArmyActions } from '../../queries/useGameMutations'
+import { predictAutoResolve, type Prediction } from '../combat/predict'
 import { errorMessage } from '../../api/client'
 import { formatDuration, marchQueueUsed, queuesForEra } from '../city/catalog'
 import { useNow, secondsUntil } from '../../lib/useNow'
@@ -23,6 +26,7 @@ export function WorldMapView({ cityId }: { cityId: string }) {
   const { data: city } = useCity(cityId)
   const { data: provinces } = useProvinces(cityId)
   const { data: worldCities } = useWorldCities(!!city)
+  const { data: worldTargets } = useWorldTargets(!!city)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [worldView, setWorldView] = useState(false)
 
@@ -33,10 +37,15 @@ export function WorldMapView({ cityId }: { cityId: string }) {
   )
   const worldOrigin = { q: -(city?.coord_x ?? 0), r: -(city?.coord_y ?? 0) }
   const selected = provinces?.find((p) => p.id === selectedId) ?? null
+  const selectedTarget = worldTargets?.find((tg) => `nd:${tg.id}` === selectedId) ?? null
 
   const activeProvinceIds = useMemo(
     () => new Set((city?.marches ?? []).filter((m) => m.status !== 'done').map((m) => m.province_id)),
     [city?.marches],
+  )
+  const activeNodeIds = useMemo(
+    () => new Set((city?.world_marches ?? []).filter((m) => m.status !== 'done').map((m) => m.target_id)),
+    [city?.world_marches],
   )
 
   const hexes = useMemo<MapHex[]>(() => {
@@ -67,9 +76,22 @@ export function WorldMapView({ cityId }: { cityId: string }) {
           subtitle: `@${n.username}`,
         })
       }
+      // Nós de recurso (PvE compartilhado), também relativos à sua cidade.
+      for (const tg of worldTargets ?? []) {
+        out.push({
+          id: `nd:${tg.id}`,
+          kind: 'node',
+          q: tg.coord_x - city.coord_x,
+          r: tg.coord_y - city.coord_y,
+          title: `${t(`resourceShort.${tg.resource}`)} ${'★'.repeat(tg.level)}`,
+          subtitle: tg.status === 'occupied' ? t('node.occupied') : `${Math.round(tg.amount_remaining)}`,
+          resource: tg.resource,
+          marching: activeNodeIds.has(tg.id),
+        })
+      }
     }
     return out
-  }, [provinces, worldCities, city, activeProvinceIds, t])
+  }, [provinces, worldCities, worldTargets, city, activeProvinceIds, activeNodeIds, t])
 
   return (
     <div style={screen}>
@@ -83,6 +105,7 @@ export function WorldMapView({ cityId }: { cityId: string }) {
       />
       {city && <ResourceBar city={city} />}
       {selected && !worldView && city && <ProvincePanel city={city} province={selected} />}
+      {selectedTarget && !worldView && city && <NodePanel city={city} target={selectedTarget} />}
       <button onClick={() => setWorldView((v) => !v)} style={worldToggleBtn}>
         {worldView ? t('worldmap.viewRegion') : t('worldmap.viewWorld')}
       </button>
@@ -94,11 +117,24 @@ export function WorldMapView({ cityId }: { cityId: string }) {
 
 function ProvincePanel({ city, province }: { city: City; province: Province }) {
   const { t } = useTranslation()
+  const { data: catalog } = useCatalog()
   const { march, startBattle } = useArmyActions(city.id)
   const openBattle = useGameUIStore((s) => s.openBattle)
   const now = useNow()
   const active = city.marches.find((m) => m.province_id === province.id && m.status !== 'done')
   const [send, setSend] = useState<Record<string, number>>({})
+
+  // Previsão DETERMINÍSTICA do auto-resolve com as tropas selecionadas (não vai às cegas).
+  const prediction = useMemo<Prediction | null>(() => {
+    const troops: Record<string, number> = {}
+    for (const [k, v] of Object.entries(send)) if (v > 0) troops[k] = v
+    if (Object.keys(troops).length === 0 || !catalog) return null
+    const stat = (key: string) => {
+      const u = catalog.units.find((x) => x.key === key)
+      return u ? { attack: u.attack, hp: u.hp } : undefined
+    }
+    return predictAutoResolve(troops, stat, { attack: province.def_attack, hp: province.def_hp })
+  }, [send, catalog, province.def_attack, province.def_hp])
 
   function selectedTroops(): Record<string, number> {
     const troops: Record<string, number> = {}
@@ -187,6 +223,7 @@ function ProvincePanel({ city, province }: { city: City; province: Province }) {
               />
             </div>
           ))}
+          {prediction && <Forecast prediction={prediction} />}
           <div style={{ fontSize: 11, marginTop: 6, color: marchFull ? '#e0b04a' : '#6b7280' }}>
             {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
             {marchFull && ` · ${t('map.marchQueueFull')}`}
@@ -205,6 +242,136 @@ function ProvincePanel({ city, province }: { city: City; province: Province }) {
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+function NodePanel({ city, target }: { city: City; target: WorldTarget }) {
+  const { t } = useTranslation()
+  const { data: catalog } = useCatalog()
+  const { collect } = useArmyActions(city.id)
+  const now = useNow()
+  const active = city.world_marches.find((m) => m.target_id === target.id && m.status !== 'done')
+  const [send, setSend] = useState<Record<string, number>>({})
+
+  function doCollect() {
+    const troops: Record<string, number> = {}
+    for (const [k, v] of Object.entries(send)) if (v > 0) troops[k] = v
+    if (Object.keys(troops).length === 0) return
+    collect.mutate({ target_id: target.id, troops }, { onSuccess: () => setSend({}) })
+  }
+
+  const totalSelected = Object.values(send).reduce((a, b) => a + b, 0)
+  // Capacidade de carga total das tropas selecionadas e quanto de fato vão coletar nesta viagem
+  // (min(carga, restante) — o jogador vê quanto "cabe").
+  const totalCarry = useMemo(() => {
+    if (!catalog) return 0
+    let c = 0
+    for (const [k, v] of Object.entries(send)) {
+      if (v > 0) {
+        const u = catalog.units.find((x) => x.key === k)
+        if (u) c += u.carry * v
+      }
+    }
+    return c
+  }, [send, catalog])
+  const willCollect = Math.min(totalCarry, Math.round(target.amount_remaining))
+  const marchLimit = queuesForEra(city.era)
+  const marchUsed = marchQueueUsed(city)
+  const marchFull = marchUsed >= marchLimit
+  const hasLoot = !!(active && (active.loot.matter || active.loot.energy || active.loot.knowledge))
+
+  return (
+    <div style={panel}>
+      <div style={{ fontWeight: 600 }}>
+        {t('node.title', { resource: t(`resourceShort.${target.resource}`), level: target.level })}
+      </div>
+      <div style={{ fontSize: 12, color: '#9aa3b2', marginTop: 2 }}>
+        {t('node.remaining')}: {Math.round(target.amount_remaining)} / {Math.round(target.amount_total)}
+      </div>
+      {target.status === 'occupied' && <div style={{ fontSize: 12, color: '#e0b04a' }}>{t('node.occupied')}</div>}
+
+      {active ? (
+        <div style={{ marginTop: 10, fontSize: 13 }}>
+          <div style={{ color: '#e0b04a' }}>
+            {active.status === 'outbound' && t('node.outbound', { time: formatDuration(secondsUntil(active.arrive_at, now)) })}
+            {active.status === 'collecting' && t('node.collecting', { time: formatDuration(secondsUntil(active.collect_until ?? active.arrive_at, now)) })}
+            {active.status === 'returning' && t('node.returning', { time: formatDuration(secondsUntil(active.return_at ?? active.arrive_at, now)) })}
+          </div>
+          {hasLoot && (
+            <div style={{ fontSize: 12, color: '#7fd99b', marginTop: 4 }}>
+              {t('node.loot')}: <CostLine amounts={active.loot} />
+            </div>
+          )}
+        </div>
+      ) : city.troops.length === 0 ? (
+        <p style={{ fontSize: 12, color: '#c2724a', marginTop: 10 }}>{t('map.noArmy')}</p>
+      ) : (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ fontSize: 12, color: '#9aa3b2', marginBottom: 4 }}>{t('map.selectTroops')}</div>
+          {city.troops.map((tr) => (
+            <div key={tr.unit_type} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ flex: 1, fontSize: 13 }}>
+                {t(`units.${tr.unit_type}`)} <span style={{ color: '#6b7280' }}>({tr.count})</span>
+              </span>
+              <input
+                type="number"
+                min={0}
+                max={tr.count}
+                value={send[tr.unit_type] ?? 0}
+                onChange={(e) => {
+                  const v = Math.max(0, Math.min(tr.count, Number(e.target.value) || 0))
+                  setSend((s) => ({ ...s, [tr.unit_type]: v }))
+                }}
+                style={input}
+              />
+            </div>
+          ))}
+          {totalSelected > 0 && (
+            <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 6, background: 'rgba(0,0,0,0.25)', fontSize: 12 }}>
+              <div style={{ color: '#9aa3b2' }}>
+                {t('node.capacity')}: <strong style={{ color: '#cdd5e3' }}>{totalCarry}</strong>
+              </div>
+              <div style={{ color: '#7fd99b' }}>
+                {t('node.willCollect')}: {willCollect} {t(`resourceShort.${target.resource}`)}
+              </div>
+            </div>
+          )}
+          <div style={{ fontSize: 11, marginTop: 6, color: marchFull ? '#e0b04a' : '#6b7280' }}>
+            {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
+            {marchFull && ` · ${t('map.marchQueueFull')}`}
+          </div>
+          <button onClick={doCollect} disabled={collect.isPending || totalSelected === 0 || marchFull} style={attackBtn}>
+            {collect.isPending ? t('node.sending') : t('node.collect')}
+          </button>
+          <p style={{ fontSize: 11, color: '#6b7280', margin: '6px 0 0' }}>{t('node.hint')}</p>
+          {collect.isError && (
+            <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>{errorMessage(collect.error)}</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Cor por tier de previsão (melhor → pior).
+const TIER_COLOR: Record<string, string> = {
+  certain_win: '#4ade80',
+  win: '#5ad17a',
+  risky: '#e0b04a',
+  no_chance: '#e0884a',
+  suicide: '#e05a5a',
+}
+
+// Forecast mostra SÓ o tier qualitativo (Vitória certa / Vitória / Arriscado / Sem chances /
+// Suicídio) das tropas selecionadas — sem números de perdas, pra manter a TENSÃO do risco (mostrar
+// a baixa exata tiraria o "arriscar"). Determinístico (espelha o auto-resolve do backend).
+function Forecast({ prediction }: { prediction: Prediction }) {
+  const { t } = useTranslation()
+  const color = TIER_COLOR[prediction.tier]
+  return (
+    <div style={{ marginTop: 8, padding: '6px 10px', borderRadius: 6, textAlign: 'center', background: 'rgba(0,0,0,0.25)', border: `1px solid ${color}66` }}>
+      <span style={{ fontSize: 14, fontWeight: 700, color }}>{t(`forecast.${prediction.tier}`)}</span>
     </div>
   )
 }

@@ -385,11 +385,13 @@ function Footer({
   const { t } = useTranslation()
   if (battle.over) {
     const won = battle.winner === 'attacker'
+    const byPoints = battle.by_round_limit
     return (
       <div style={{ marginTop: 12, textAlign: 'center' }}>
-        <div style={{ fontSize: 20, fontWeight: 700, color: won ? '#5ad17a' : '#e0884a', marginBottom: 8 }}>
-          {won ? t('battle.victory') : t('battle.defeat')}
+        <div style={{ fontSize: 20, fontWeight: 700, color: won ? '#5ad17a' : '#e0884a', marginBottom: byPoints ? 4 : 8 }}>
+          {byPoints ? (won ? t('battle.victoryPoints') : t('battle.defeatPoints')) : won ? t('battle.victory') : t('battle.defeat')}
         </div>
+        {byPoints && <div style={{ fontSize: 12, color: '#9aa3b2', marginBottom: 8 }}>{t('battle.roundLimitNote')}</div>}
         <button onClick={onClose} style={primaryBtn}>
           {t('battle.backToMap')}
         </button>

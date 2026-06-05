@@ -37,7 +37,11 @@ export function buildQueueUsed(city: City): number {
 
 // Marchas ativas (ida/volta) em uso.
 export function marchQueueUsed(city: City): number {
-  return city.marches.filter((m) => m.status !== 'done').length
+  // Expedições ativas dividem a MESMA lane: marchas de província + marchas a nós do mundo (SW2).
+  return (
+    city.marches.filter((m) => m.status !== 'done').length +
+    (city.world_marches?.filter((m) => m.status !== 'done').length ?? 0)
+  )
 }
 
 // Quantas cópias deste tipo já existem (construídas + na fila de construção, não upgrades).

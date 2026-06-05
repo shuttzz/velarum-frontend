@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Amounts, Report } from '../../types/game'
+import type { Amounts, BattleReport, CollectReport, Report } from '../../types/game'
 import { useReports, useMarkReportsRead } from '../../queries/useReports'
 
 // Caixa de relatórios (sobreposta a qualquer tela): botão com badge de não-lidos, painel com
@@ -49,18 +49,36 @@ function ReportsPanel({ reports, onClose }: { reports: Report[]; onClose: () => 
         <p style={{ color: '#9aa3b2', fontSize: 13 }}>{t('reports.empty')}</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {reports.map((r) => (
-            <BattleEntry key={r.id} r={r} />
-          ))}
+          {reports.map((r) => (r.type === 'collection' ? <CollectEntry key={r.id} r={r} /> : <BattleEntry key={r.id} r={r} />))}
         </div>
       )}
     </div>
   )
 }
 
+function CollectEntry({ r }: { r: Report }) {
+  const { t } = useTranslation()
+  const c = r.payload as CollectReport
+  if (c.bounced) {
+    return (
+      <div style={entry}>
+        <div style={{ fontWeight: 600, color: '#e0884a' }}>{t('reports.collectBounced')}</div>
+      </div>
+    )
+  }
+  return (
+    <div style={entry}>
+      <div style={{ fontWeight: 600, color: '#7fd99b' }}>{t('reports.collected')}</div>
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+        {Math.round(c.collected)} {t(`resourceShort.${c.resource}`)}
+      </div>
+    </div>
+  )
+}
+
 function BattleEntry({ r }: { r: Report }) {
   const { t } = useTranslation()
-  const b = r.payload
+  const b = r.payload as BattleReport
   const losses = Object.entries(b.losses)
     .filter(([, c]) => c > 0)
     .map(([k, c]) => `${c} ${t(`units.${k}`)}`)
@@ -110,7 +128,22 @@ function ReportToaster({ reports }: { reports: Report[] }) {
   }, [toast])
 
   if (!toast) return null
-  const b = toast.payload
+  if (toast.type === 'collection') {
+    const c = toast.payload as CollectReport
+    return (
+      <div style={toastStyle} onClick={() => setToast(null)} role="status">
+        {c.bounced ? (
+          <strong style={{ color: '#e0884a' }}>{t('reports.collectBounced')}</strong>
+        ) : (
+          <>
+            <strong style={{ color: '#7fd99b' }}>{t('reports.collected')}</strong> · {Math.round(c.collected)}{' '}
+            {t(`resourceShort.${c.resource}`)}
+          </>
+        )}
+      </div>
+    )
+  }
+  const b = toast.payload as BattleReport
   return (
     <div style={toastStyle} onClick={() => setToast(null)} role="status">
       <strong style={{ color: b.attacker_won ? '#5ad17a' : '#e0884a' }}>
