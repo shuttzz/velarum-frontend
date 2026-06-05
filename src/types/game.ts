@@ -231,7 +231,6 @@ export type CatalogUnit = {
   recruit_time: number
   min_barracks_level: number
   carry: number // capacidade de carga (coleta de nós)
-  gather_rate: number // taxa de coleta por unidade (recurso/s)
   era: number
 }
 
