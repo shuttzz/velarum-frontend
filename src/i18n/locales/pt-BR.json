@@ -215,7 +215,8 @@
   },
   "target": {
     "village": "Aldeia hostil",
-    "creature": "Criatura da Lacuna"
+    "creature": "Criatura da Lacuna",
+    "expires": "Some em {{time}}"
   },
   "forecast": {
     "certain_win": "Vitória certa",

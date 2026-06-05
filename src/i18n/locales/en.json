@@ -215,7 +215,8 @@
   },
   "target": {
     "village": "Hostile village",
-    "creature": "Rift creature"
+    "creature": "Rift creature",
+    "expires": "Despawns in {{time}}"
   },
   "forecast": {
     "certain_win": "Certain win",

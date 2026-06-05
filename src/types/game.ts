@@ -50,6 +50,7 @@ export type WorldTarget = {
   def_attack: number // combate: defesa agregada
   def_hp: number
   reward: Amounts // combate: loot ao matar
+  expires_at: string | null // combate: quando despawna (TTL); null p/ nó
   status: 'idle' | 'occupied' | 'depleted'
 }
 

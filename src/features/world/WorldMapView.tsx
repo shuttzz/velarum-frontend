@@ -465,6 +465,11 @@ function CombatTargetPanel({ city, target }: { city: City; target: WorldTarget }
           {t('map.reward')}: <CostLine amounts={target.reward} />
         </div>
       )}
+      {target.expires_at && (
+        <div style={{ fontSize: 11, color: '#9aa3b2', marginTop: 2 }}>
+          {t('target.expires', { time: formatDuration(secondsUntil(target.expires_at, now)) })}
+        </div>
+      )}
 
       {active ? (
         <div style={{ marginTop: 10, fontSize: 13 }}>
