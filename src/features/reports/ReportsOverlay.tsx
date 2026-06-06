@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Amounts, BattleReport, CollectReport, DefenseReport, IncomingReport, RaidPvPReport, RaidReport, Report } from '../../types/game'
+import type { Amounts, BattleReport, CollectReport, DefenseReport, IncomingReport, RaidPvPReport, RaidReport, Report, ScoutReport } from '../../types/game'
 import { useReports, useMarkReportsRead } from '../../queries/useReports'
 
 // Caixa de relatórios (sobreposta a qualquer tela): botão com badge de não-lidos, painel com
@@ -60,6 +60,10 @@ function ReportsPanel({ reports, onClose }: { reports: Report[]; onClose: () => 
               <DefenseEntry key={r.id} r={r} />
             ) : r.type === 'incoming' ? (
               <IncomingEntry key={r.id} r={r} />
+            ) : r.type === 'scout' ? (
+              <ScoutEntry key={r.id} r={r} />
+            ) : r.type === 'incoming_scout' ? (
+              <IncomingScoutEntry key={r.id} r={r} />
             ) : (
               <BattleEntry key={r.id} r={r} />
             ),
@@ -169,6 +173,39 @@ function IncomingEntry({ r }: { r: Report }) {
   )
 }
 
+function ScoutEntry({ r }: { r: Report }) {
+  const { t } = useTranslation()
+  const c = r.payload as ScoutReport
+  const garrison = Object.entries(c.garrison || {})
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => `${n} ${t(`units.${k}`)}`)
+    .join(', ')
+  return (
+    <div style={entry}>
+      <div style={{ fontWeight: 600, color: '#a06ad0' }}>🔍 {t('scout.reportOn', { name: c.target_name })}</div>
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+        {t('scout.garrison')}: {garrison || t('reports.none')}
+      </div>
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+        {t('scout.defense')}: 🧱 {c.wall_level} · 🗼 {c.tower_level}
+      </div>
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+        {t('scout.unprotected')}: <Reward a={c.raidable} />
+      </div>
+    </div>
+  )
+}
+
+function IncomingScoutEntry({ r }: { r: Report }) {
+  const { t } = useTranslation()
+  const c = r.payload as IncomingReport
+  return (
+    <div style={entry}>
+      <div style={{ fontWeight: 600, color: '#a06ad0' }}>🔍 {t('scout.incomingFrom', { name: c.attacker_name })}</div>
+    </div>
+  )
+}
+
 function lossesText(losses: Record<string, number>, t: (k: string) => string): string {
   return Object.entries(losses)
     .filter(([, n]) => n > 0)
@@ -228,6 +265,22 @@ function ReportToaster({ reports }: { reports: Report[] }) {
   }, [toast])
 
   if (!toast) return null
+  if (toast.type === 'incoming_scout') {
+    const c = toast.payload as IncomingReport
+    return (
+      <div style={toastStyle} onClick={() => setToast(null)} role="status">
+        <strong style={{ color: '#a06ad0' }}>🔍 {t('scout.incomingFrom', { name: c.attacker_name })}</strong>
+      </div>
+    )
+  }
+  if (toast.type === 'scout') {
+    const c = toast.payload as ScoutReport
+    return (
+      <div style={toastStyle} onClick={() => setToast(null)} role="status">
+        <strong style={{ color: '#a06ad0' }}>🔍 {t('scout.reportOn', { name: c.target_name })}</strong>
+      </div>
+    )
+  }
   if (toast.type === 'incoming') {
     const c = toast.payload as IncomingReport
     return (

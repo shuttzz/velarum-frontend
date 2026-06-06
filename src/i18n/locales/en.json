@@ -96,6 +96,7 @@
     "altar_das_fogueiras": "Altar of Fires",
     "torre_do_vigia": "Watchtower",
     "muralha": "Wall",
+    "toca_dos_batedores": "Scout Den",
     "circulo_runico": "Runic Circle",
     "praca_do_conselho": "Council Square",
     "pira_dos_guerreiros": "Warriors' Pyre",
@@ -219,6 +220,21 @@
     "creature": "Rift creature",
     "expires": "Despawns in {{time}}"
   },
+  "scout": {
+    "title": "Scouts",
+    "unit": "Scout",
+    "count": "{{n}} available",
+    "train": "Train",
+    "send": "Scout",
+    "needHouse": "Build the Scout Den.",
+    "scouting": "Scouting… arrives in {{time}}",
+    "returning": "Scout returning… {{time}}",
+    "reportOn": "Scouted @{{name}}",
+    "garrison": "Garrison",
+    "defense": "Defense (wall · tower)",
+    "unprotected": "Unprotected",
+    "incomingFrom": "@{{name}}'s scout is spying on you"
+  },
   "raid": {
     "raid": "Raid",
     "raiding": "Sending…",
@@ -261,6 +277,8 @@
     "target_city_not_found": "Target city not found.",
     "cannot_raid_self": "You can't raid your own city.",
     "defender_shielded": "Target is under a protection shield (new player).",
+    "no_scout_house": "Build the Scout Den first.",
+    "no_scouts": "No scouts available (train them at the Scout Den).",
     "queue_full": "Queue limit reached — wait for an operation to finish.",
     "battle_active": "A battle is already in progress.",
     "battle_not_found": "Battle not found.",

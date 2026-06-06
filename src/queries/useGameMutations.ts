@@ -132,6 +132,15 @@ export function useArmyActions(cityId: string) {
       void qc.invalidateQueries({ queryKey: ['world-cities'] })
     },
   })
+  // Espionagem (SW3): treinar batedores (Toca) e enviar 1 batedor para espiar um vizinho.
+  const trainScouts = useMutation({
+    mutationFn: (p: { count: number }) => citiesApi.trainScouts(cityId, p),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.city(cityId) }),
+  })
+  const sendScout = useMutation({
+    mutationFn: (p: { target_city_id: string }) => citiesApi.sendScout(cityId, p),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.city(cityId) }),
+  })
   // Batalha tática: inicia a batalha (debita a guarnição no servidor) contra a província. A
   // resposta traz a BattleView; o chamador abre o overlay com view.id.
   const startBattle = useMutation({
@@ -170,5 +179,5 @@ export function useArmyActions(cityId: string) {
     onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.city(cityId) }),
   })
 
-  return { recruit, march, collect, raid, startBattle, cancelRecruit }
+  return { recruit, march, collect, raid, trainScouts, sendScout, startBattle, cancelRecruit }
 }

@@ -45,6 +45,17 @@ export function useCompletionRefetch(cityId: string | null) {
       else if (m.status === 'collecting' && m.collect_until) times.push(new Date(m.collect_until).getTime())
       else if (m.status === 'returning' && m.return_at) times.push(new Date(m.return_at).getTime())
     }
+    // Saques PvP (SW3).
+    for (const r of city.raids ?? []) {
+      if (r.status === 'outbound') times.push(new Date(r.arrive_at).getTime())
+      else if (r.status === 'returning' && r.return_at) times.push(new Date(r.return_at).getTime())
+    }
+    // Espionagem: treino de batedores + missões de scout.
+    for (const sq of city.scouts_training ?? []) times.push(new Date(sq.finish_at).getTime())
+    for (const m of city.scout_missions ?? []) {
+      if (m.status === 'outbound') times.push(new Date(m.arrive_at).getTime())
+      else if (m.status === 'returning' && m.return_at) times.push(new Date(m.return_at).getTime())
+    }
     if (times.length === 0) return
 
     const future = times.filter((t) => t > now)

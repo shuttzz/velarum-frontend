@@ -53,6 +53,9 @@ const city: City = {
   world_marches: [],
   raids: [],
   incoming: [],
+  scouts: 0,
+  scouts_training: [],
+  scout_missions: [],
   active_battle_id: '',
   server_now: '2026-06-03T00:00:00Z',
 }

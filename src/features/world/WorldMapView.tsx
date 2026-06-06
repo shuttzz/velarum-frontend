@@ -542,6 +542,8 @@ function NeighborPanel({ city, neighbor }: { city: City; neighbor: WorldCity }) 
       <div style={{ fontWeight: 600 }}>{neighbor.name}</div>
       <div style={{ fontSize: 12, color: '#9aa3b2' }}>@{neighbor.username}</div>
 
+      <ScoutControl city={city} neighbor={neighbor} />
+
       {active ? (
         <div style={{ marginTop: 10, fontSize: 13 }}>
           {active.status === 'returning' && active.attacker_won != null && (
@@ -577,6 +579,40 @@ function NeighborPanel({ city, neighbor }: { city: City; neighbor: WorldCity }) 
           {raid.isError && <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>{errorMessage(raid.error)}</p>}
         </div>
       )}
+    </div>
+  )
+}
+
+// Controle de ESPIONAGEM no painel do vizinho: envia 1 batedor (lane separada) ou mostra a missão
+// em andamento. O intel volta no relatório de espionagem.
+function ScoutControl({ city, neighbor }: { city: City; neighbor: WorldCity }) {
+  const { t } = useTranslation()
+  const { sendScout } = useArmyActions(city.id)
+  const now = useNow()
+  const mission = city.scout_missions.find((m) => m.target_city_id === neighbor.id && m.status !== 'done')
+  const hasHouse = city.buildings.some((b) => b.type === 'toca_dos_batedores')
+
+  if (mission) {
+    return (
+      <div style={{ fontSize: 12, color: '#a06ad0', marginTop: 8 }}>
+        🔍{' '}
+        {mission.status === 'outbound'
+          ? t('scout.scouting', { time: formatDuration(secondsUntil(mission.arrive_at, now)) })
+          : t('scout.returning', { time: formatDuration(secondsUntil(mission.return_at ?? mission.arrive_at, now)) })}
+      </div>
+    )
+  }
+  return (
+    <div style={{ marginTop: 8 }}>
+      <button
+        onClick={() => sendScout.mutate({ target_city_id: neighbor.id })}
+        disabled={!hasHouse || city.scouts < 1 || sendScout.isPending}
+        style={scoutBtn}
+      >
+        🔍 {t('scout.send')} ({city.scouts})
+      </button>
+      {!hasHouse && <p style={{ fontSize: 11, color: '#6b7280', margin: '4px 0 0' }}>{t('scout.needHouse')}</p>}
+      {sendScout.isError && <p style={{ fontSize: 12, color: '#e0884a', margin: '4px 0 0' }}>{errorMessage(sendScout.error)}</p>}
     </div>
   )
 }
@@ -689,6 +725,16 @@ const incomingBanner: CSSProperties = {
   pointerEvents: 'auto',
   zIndex: 40,
   whiteSpace: 'nowrap',
+}
+
+const scoutBtn: CSSProperties = {
+  padding: '6px 10px',
+  fontSize: 13,
+  borderRadius: 8,
+  border: '1px solid #7a5aa0',
+  background: '#3a2c4a',
+  color: '#e3d6ea',
+  cursor: 'pointer',
 }
 
 const maxBtn: CSSProperties = {

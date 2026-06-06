@@ -1,8 +1,10 @@
-import { type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { City } from '../../../types/game'
 import { Modal } from '../../../components/Modal'
 import { useProvinces } from '../../../queries/useProvinces'
+import { useArmyActions } from '../../../queries/useGameMutations'
+import { errorMessage } from '../../../api/client'
 import { useNow, secondsUntil } from '../../../lib/useNow'
 import { formatDuration } from '../catalog'
 import { unitColor } from '../buildingVisual'
@@ -96,6 +98,9 @@ export function ArmyModal({ city, onClose }: { city: City; onClose: () => void }
         </div>
       )}
 
+      {/* Batedores (espionagem) */}
+      <ScoutSection city={city} />
+
       {/* Em marcha */}
       <div style={section}>
         <div style={sectionHead}>
@@ -177,6 +182,50 @@ export function ArmyModal({ city, onClose }: { city: City; onClose: () => void }
   )
 }
 
+// Seção de batedores (espionagem): contagem + treino na Toca dos Batedores.
+function ScoutSection({ city }: { city: City }) {
+  const { t } = useTranslation()
+  const { trainScouts } = useArmyActions(city.id)
+  const now = useNow()
+  const [count, setCount] = useState(1)
+  const hasHouse = city.buildings.some((b) => b.type === 'toca_dos_batedores')
+  return (
+    <div style={section}>
+      <div style={sectionHead}>
+        <strong>{t('scout.title')}</strong>
+        <span style={{ fontSize: 12, color: '#9aa3b2' }}>{t('scout.count', { n: city.scouts })}</span>
+      </div>
+      {!hasHouse ? (
+        <p style={empty}>{t('scout.needHouse')}</p>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+            <input
+              type="number"
+              min={1}
+              value={count}
+              onChange={(e) => setCount(Math.max(1, Number(e.target.value) || 1))}
+              style={scoutInput}
+            />
+            <button onClick={() => trainScouts.mutate({ count })} disabled={trainScouts.isPending} style={trainBtn}>
+              {t('scout.train')}
+            </button>
+          </div>
+          {city.scouts_training.map((sq) => (
+            <div key={sq.id} style={row}>
+              <span>
+                {sq.count}× {t('scout.unit')}
+              </span>
+              <span style={{ color: '#e0b04a' }}>⏳ {formatDuration(secondsUntil(sq.finish_at, now))}</span>
+            </div>
+          ))}
+          {trainScouts.isError && <p style={{ fontSize: 12, color: '#e0884a', margin: 0 }}>{errorMessage(trainScouts.error)}</p>}
+        </>
+      )}
+    </div>
+  )
+}
+
 const section: CSSProperties = { marginBottom: 14 }
 const sectionHead: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }
 const empty: CSSProperties = { fontSize: 13, color: '#6b7280', margin: 0 }
@@ -192,6 +241,8 @@ const chip: CSSProperties = {
   fontSize: 13,
 }
 const dot: CSSProperties = { width: 12, height: 12, borderRadius: 3, display: 'inline-block' }
+const scoutInput: CSSProperties = { width: 64, padding: '4px 6px', fontSize: 13, borderRadius: 6, border: '1px solid #39415a', background: '#11141c', color: '#fff' }
+const trainBtn: CSSProperties = { padding: '6px 12px', fontSize: 13, borderRadius: 6, border: '1px solid #7a5aa0', background: '#3a2c4a', color: '#e3d6ea', cursor: 'pointer' }
 const row: CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',

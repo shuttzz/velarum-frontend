@@ -96,6 +96,7 @@
     "altar_das_fogueiras": "Altar das Fogueiras",
     "torre_do_vigia": "Torre do Vigia",
     "muralha": "Muralha",
+    "toca_dos_batedores": "Toca dos Batedores",
     "circulo_runico": "Círculo Rúnico",
     "praca_do_conselho": "Praça do Conselho",
     "pira_dos_guerreiros": "Pira dos Guerreiros",
@@ -219,6 +220,21 @@
     "creature": "Criatura da Lacuna",
     "expires": "Some em {{time}}"
   },
+  "scout": {
+    "title": "Batedores",
+    "unit": "Batedor",
+    "count": "{{n}} disponível(is)",
+    "train": "Treinar",
+    "send": "Espionar",
+    "needHouse": "Construa a Toca dos Batedores.",
+    "scouting": "Espionando… chega em {{time}}",
+    "returning": "Batedor voltando… {{time}}",
+    "reportOn": "Espionagem de @{{name}}",
+    "garrison": "Guarnição",
+    "defense": "Defesa (muralha · torre)",
+    "unprotected": "Desprotegido",
+    "incomingFrom": "Batedor de @{{name}} espionando você"
+  },
   "raid": {
     "raid": "Saquear",
     "raiding": "Enviando…",
@@ -261,6 +277,8 @@
     "target_city_not_found": "Cidade alvo não encontrada.",
     "cannot_raid_self": "Você não pode saquear a própria cidade.",
     "defender_shielded": "Alvo sob escudo de proteção (jogador novato).",
+    "no_scout_house": "Construa a Toca dos Batedores primeiro.",
+    "no_scouts": "Nenhum batedor disponível (treine na Toca dos Batedores).",
     "queue_full": "Limite de filas atingido — aguarde uma operação terminar.",
     "battle_active": "Já há uma batalha em andamento.",
     "battle_not_found": "Batalha não encontrada.",

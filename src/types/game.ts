@@ -89,6 +89,24 @@ export type IncomingRaid = {
   arrive_at: string
 }
 
+// Espionagem (SW3): batedores em treino + missões de scout.
+export type ScoutQueued = { id: string; count: number; finish_at: string }
+export type ScoutIntel = {
+  garrison: Record<string, number>
+  wall_level: number
+  tower_level: number
+  raidable: Amounts
+}
+export type ScoutMission = {
+  id: string
+  target_city_id: string
+  target_name: string
+  status: 'outbound' | 'returning' | 'done'
+  intel: ScoutIntel | null
+  arrive_at: string
+  return_at: string | null
+}
+
 export type City = {
   id: string
   player_id: string
@@ -110,6 +128,9 @@ export type City = {
   world_marches: WorldMarch[]
   raids: Raid[] // saques que VOCÊ enviou (SW3)
   incoming: IncomingRaid[] // ataques VINDO para você
+  scouts: number // batedores treinados, parados na cidade
+  scouts_training: ScoutQueued[] // batedores em treino
+  scout_missions: ScoutMission[] // missões de espionagem ativas
   active_battle_id: string
   server_now: string
 }
@@ -192,13 +213,14 @@ export type RaidReport = {
 export type RaidPvPReport = { defender_name: string; won: boolean; loot: Amounts; sent: Record<string, number>; losses: Record<string, number> }
 export type DefenseReport = { attacker_name: string; attacker_won: boolean; stolen: Amounts; defender_losses: Record<string, number> }
 export type IncomingReport = { attacker_name: string; arrive_at: string }
+export type ScoutReport = { target_name: string } & ScoutIntel
 
 export type Report = {
   id: string
   type: string
   read: boolean
   created_at: string
-  payload: BattleReport | CollectReport | RaidReport | RaidPvPReport | DefenseReport | IncomingReport
+  payload: BattleReport | CollectReport | RaidReport | RaidPvPReport | DefenseReport | IncomingReport | ScoutReport
 }
 
 // Cidade vizinha no mapa-mundo compartilhado.
