@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Amounts, BattleReport, CollectReport, RaidReport, Report } from '../../types/game'
+import type { Amounts, BattleReport, CollectReport, DefenseReport, IncomingReport, RaidPvPReport, RaidReport, Report } from '../../types/game'
 import { useReports, useMarkReportsRead } from '../../queries/useReports'
 
 // Caixa de relatórios (sobreposta a qualquer tela): botão com badge de não-lidos, painel com
@@ -54,6 +54,12 @@ function ReportsPanel({ reports, onClose }: { reports: Report[]; onClose: () => 
               <CollectEntry key={r.id} r={r} />
             ) : r.type === 'raid' ? (
               <RaidEntry key={r.id} r={r} />
+            ) : r.type === 'raid_pvp' ? (
+              <RaidPvPEntry key={r.id} r={r} />
+            ) : r.type === 'defense' ? (
+              <DefenseEntry key={r.id} r={r} />
+            ) : r.type === 'incoming' ? (
+              <IncomingEntry key={r.id} r={r} />
             ) : (
               <BattleEntry key={r.id} r={r} />
             ),
@@ -109,6 +115,67 @@ function RaidEntry({ r }: { r: Report }) {
   )
 }
 
+function RaidPvPEntry({ r }: { r: Report }) {
+  const { t } = useTranslation()
+  const c = r.payload as RaidPvPReport
+  const losses = lossesText(c.losses, t)
+  const hasLoot = !!(c.loot.matter || c.loot.energy || c.loot.knowledge)
+  return (
+    <div style={entry}>
+      <div style={{ fontWeight: 600, color: c.won ? '#5ad17a' : '#e0884a' }}>
+        {c.won ? t('map.victory') : t('map.defeat')} · {t('raid.raidOn', { name: c.defender_name })}
+      </div>
+      {c.won && hasLoot && (
+        <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+          {t('raid.stole')}: <Reward a={c.loot} />
+        </div>
+      )}
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+        {t('reports.losses')}: {losses || t('reports.none')}
+      </div>
+    </div>
+  )
+}
+
+function DefenseEntry({ r }: { r: Report }) {
+  const { t } = useTranslation()
+  const c = r.payload as DefenseReport
+  const losses = lossesText(c.defender_losses, t)
+  const hasStolen = !!(c.stolen.matter || c.stolen.energy || c.stolen.knowledge)
+  return (
+    <div style={entry}>
+      <div style={{ fontWeight: 600, color: c.attacker_won ? '#e0884a' : '#5ad17a' }}>
+        {c.attacker_won ? t('raid.wasRaided', { name: c.attacker_name }) : t('raid.defended', { name: c.attacker_name })}
+      </div>
+      {hasStolen && (
+        <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+          {t('raid.stolenFromYou')}: <Reward a={c.stolen} />
+        </div>
+      )}
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>
+        {t('reports.losses')}: {losses || t('reports.none')}
+      </div>
+    </div>
+  )
+}
+
+function IncomingEntry({ r }: { r: Report }) {
+  const { t } = useTranslation()
+  const c = r.payload as IncomingReport
+  return (
+    <div style={entry}>
+      <div style={{ fontWeight: 600, color: '#e0884a' }}>⚠ {t('raid.incomingFrom', { name: c.attacker_name })}</div>
+    </div>
+  )
+}
+
+function lossesText(losses: Record<string, number>, t: (k: string) => string): string {
+  return Object.entries(losses)
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => `${n} ${t(`units.${k}`)}`)
+    .join(', ')
+}
+
 function BattleEntry({ r }: { r: Report }) {
   const { t } = useTranslation()
   const b = r.payload as BattleReport
@@ -161,6 +228,33 @@ function ReportToaster({ reports }: { reports: Report[] }) {
   }, [toast])
 
   if (!toast) return null
+  if (toast.type === 'incoming') {
+    const c = toast.payload as IncomingReport
+    return (
+      <div style={toastStyle} onClick={() => setToast(null)} role="status">
+        <strong style={{ color: '#e0884a' }}>⚠ {t('raid.incomingFrom', { name: c.attacker_name })}</strong>
+      </div>
+    )
+  }
+  if (toast.type === 'defense') {
+    const c = toast.payload as DefenseReport
+    return (
+      <div style={toastStyle} onClick={() => setToast(null)} role="status">
+        <strong style={{ color: c.attacker_won ? '#e0884a' : '#5ad17a' }}>
+          {c.attacker_won ? t('raid.wasRaided', { name: c.attacker_name }) : t('raid.defended', { name: c.attacker_name })}
+        </strong>
+      </div>
+    )
+  }
+  if (toast.type === 'raid_pvp') {
+    const c = toast.payload as RaidPvPReport
+    return (
+      <div style={toastStyle} onClick={() => setToast(null)} role="status">
+        <strong style={{ color: c.won ? '#5ad17a' : '#e0884a' }}>{c.won ? t('map.victory') : t('map.defeat')}</strong> ·{' '}
+        {t('raid.raidOn', { name: c.defender_name })}
+      </div>
+    )
+  }
   if (toast.type === 'raid') {
     const c = toast.payload as RaidReport
     return (

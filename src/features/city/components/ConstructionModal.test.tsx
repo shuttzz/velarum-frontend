@@ -51,6 +51,8 @@ const city: City = {
   army_cap: 0,
   marches: [],
   world_marches: [],
+  raids: [],
+  incoming: [],
   active_battle_id: '',
   server_now: '2026-06-03T00:00:00Z',
 }

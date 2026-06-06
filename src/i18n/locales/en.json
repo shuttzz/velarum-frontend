@@ -95,6 +95,7 @@
     "canteiro_de_almas": "Soul Cradle",
     "altar_das_fogueiras": "Altar of Fires",
     "torre_do_vigia": "Watchtower",
+    "muralha": "Wall",
     "circulo_runico": "Runic Circle",
     "praca_do_conselho": "Council Square",
     "pira_dos_guerreiros": "Warriors' Pyre",
@@ -218,6 +219,18 @@
     "creature": "Rift creature",
     "expires": "Despawns in {{time}}"
   },
+  "raid": {
+    "raid": "Raid",
+    "raiding": "Sending…",
+    "fogHint": "You can't see the target's defense. (Scout it later with a spy.)",
+    "raidOn": "Raid on @{{name}}",
+    "stole": "Stole",
+    "wasRaided": "Raided by @{{name}}",
+    "defended": "Defended against @{{name}}",
+    "stolenFromYou": "They took",
+    "incomingFrom": "Incoming attack from @{{name}}",
+    "incomingTitle": "{{count}} incoming attack(s)!"
+  },
   "forecast": {
     "certain_win": "Certain win",
     "win": "Victory",
@@ -245,6 +258,9 @@
     "province_not_found": "Province not found.",
     "target_not_found": "Node not found.",
     "target_depleted": "Node depleted.",
+    "target_city_not_found": "Target city not found.",
+    "cannot_raid_self": "You can't raid your own city.",
+    "defender_shielded": "Target is under a protection shield (new player).",
     "queue_full": "Queue limit reached — wait for an operation to finish.",
     "battle_active": "A battle is already in progress.",
     "battle_not_found": "Battle not found.",

@@ -95,6 +95,7 @@
     "canteiro_de_almas": "Canteiro de Almas",
     "altar_das_fogueiras": "Altar das Fogueiras",
     "torre_do_vigia": "Torre do Vigia",
+    "muralha": "Muralha",
     "circulo_runico": "Círculo Rúnico",
     "praca_do_conselho": "Praça do Conselho",
     "pira_dos_guerreiros": "Pira dos Guerreiros",
@@ -218,6 +219,18 @@
     "creature": "Criatura da Lacuna",
     "expires": "Some em {{time}}"
   },
+  "raid": {
+    "raid": "Saquear",
+    "raiding": "Enviando…",
+    "fogHint": "Você não enxerga a defesa do alvo. (Espione com um batedor no futuro.)",
+    "raidOn": "Saque a @{{name}}",
+    "stole": "Saqueou",
+    "wasRaided": "Saqueado por @{{name}}",
+    "defended": "Defendeu o ataque de @{{name}}",
+    "stolenFromYou": "Levaram",
+    "incomingFrom": "Ataque a caminho de @{{name}}",
+    "incomingTitle": "{{count}} ataque(s) a caminho!"
+  },
   "forecast": {
     "certain_win": "Vitória certa",
     "win": "Vitória",
@@ -245,6 +258,9 @@
     "province_not_found": "Província não encontrada.",
     "target_not_found": "Nó não encontrado.",
     "target_depleted": "Nó esgotado.",
+    "target_city_not_found": "Cidade alvo não encontrada.",
+    "cannot_raid_self": "Você não pode saquear a própria cidade.",
+    "defender_shielded": "Alvo sob escudo de proteção (jogador novato).",
     "queue_full": "Limite de filas atingido — aguarde uma operação terminar.",
     "battle_active": "Já há uma batalha em andamento.",
     "battle_not_found": "Batalha não encontrada.",

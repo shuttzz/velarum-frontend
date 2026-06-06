@@ -68,6 +68,27 @@ export type WorldMarch = {
   return_at: string | null
 }
 
+// Saque PvP (SW3): ataque à cidade de outro jogador.
+export type Raid = {
+  id: string
+  attacker_city_id: string
+  defender_city_id: string
+  defender_name: string
+  status: 'outbound' | 'returning' | 'done'
+  attacker_won: boolean | null
+  troops: Record<string, number>
+  survivors: Record<string, number> | null
+  loot: Amounts
+  arrive_at: string
+  return_at: string | null
+}
+
+// Ataque VINDO para você (alerta, com névoa: quem + quando, sem tropas).
+export type IncomingRaid = {
+  attacker_name: string
+  arrive_at: string
+}
+
 export type City = {
   id: string
   player_id: string
@@ -87,6 +108,8 @@ export type City = {
   army_cap: number
   marches: March[]
   world_marches: WorldMarch[]
+  raids: Raid[] // saques que VOCÊ enviou (SW3)
+  incoming: IncomingRaid[] // ataques VINDO para você
   active_battle_id: string
   server_now: string
 }
@@ -165,12 +188,17 @@ export type RaidReport = {
   losses: Record<string, number>
 }
 
+// Relatórios do saque PvP (SW3).
+export type RaidPvPReport = { defender_name: string; won: boolean; loot: Amounts; sent: Record<string, number>; losses: Record<string, number> }
+export type DefenseReport = { attacker_name: string; attacker_won: boolean; stolen: Amounts; defender_losses: Record<string, number> }
+export type IncomingReport = { attacker_name: string; arrive_at: string }
+
 export type Report = {
   id: string
   type: string
   read: boolean
   created_at: string
-  payload: BattleReport | CollectReport | RaidReport
+  payload: BattleReport | CollectReport | RaidReport | RaidPvPReport | DefenseReport | IncomingReport
 }
 
 // Cidade vizinha no mapa-mundo compartilhado.

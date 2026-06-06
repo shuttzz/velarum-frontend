@@ -160,7 +160,7 @@ export class WorldMapRenderer {
       if (selected) m.poly(hexPoly(HEX)).stroke({ width: 2, color: 0xe0b04a, alpha: 0.45 }) // revela o hex
       m.circle(0, 0, r).fill(pal.fill).stroke({ width: selected ? 4 : 2.5, color: h.marching ? 0xe0b04a : pal.stroke })
       m.position.set(x, y)
-      if (h.kind === 'province' || h.kind === 'node' || h.kind === 'village' || h.kind === 'creature') {
+      if (h.kind === 'province' || h.kind === 'node' || h.kind === 'village' || h.kind === 'creature' || h.kind === 'neighbor') {
         m.eventMode = 'static'
         m.cursor = 'pointer'
         m.on('pointertap', (e: FederatedPointerEvent) => {

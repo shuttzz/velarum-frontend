@@ -1,6 +1,6 @@
 import { useMemo, useState, type CSSProperties, type Dispatch, type SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Amounts, City, Province, Troop, WorldTarget } from '../../types/game'
+import type { Amounts, City, Province, Troop, WorldCity, WorldTarget } from '../../types/game'
 import { useCity } from '../../queries/useCity'
 import { useProvinces } from '../../queries/useProvinces'
 import { useWorldCities } from '../../queries/useWorldCities'
@@ -38,6 +38,7 @@ export function WorldMapView({ cityId }: { cityId: string }) {
   const worldOrigin = { q: -(city?.coord_x ?? 0), r: -(city?.coord_y ?? 0) }
   const selected = provinces?.find((p) => p.id === selectedId) ?? null
   const selectedTarget = worldTargets?.find((tg) => `nd:${tg.id}` === selectedId) ?? null
+  const selectedNeighbor = worldCities?.find((n) => `nb:${n.id}` === selectedId && n.id !== city?.id) ?? null
 
   const activeProvinceIds = useMemo(
     () => new Set((city?.marches ?? []).filter((m) => m.status !== 'done').map((m) => m.province_id)),
@@ -46,6 +47,10 @@ export function WorldMapView({ cityId }: { cityId: string }) {
   const activeNodeIds = useMemo(
     () => new Set((city?.world_marches ?? []).filter((m) => m.status !== 'done').map((m) => m.target_id)),
     [city?.world_marches],
+  )
+  const activeRaidIds = useMemo(
+    () => new Set((city?.raids ?? []).filter((r) => r.status !== 'done').map((r) => r.defender_city_id)),
+    [city?.raids],
   )
 
   const hexes = useMemo<MapHex[]>(() => {
@@ -74,6 +79,7 @@ export function WorldMapView({ cityId }: { cityId: string }) {
           r: n.coord_y - city.coord_y,
           title: n.name,
           subtitle: `@${n.username}`,
+          marching: activeRaidIds.has(n.id),
         })
       }
       // Alvos PvE compartilhados (nós de recurso + aldeias/criaturas), relativos à sua cidade.
@@ -98,7 +104,7 @@ export function WorldMapView({ cityId }: { cityId: string }) {
       }
     }
     return resolveOverlaps(out)
-  }, [provinces, worldCities, worldTargets, city, activeProvinceIds, activeNodeIds, t])
+  }, [provinces, worldCities, worldTargets, city, activeProvinceIds, activeNodeIds, activeRaidIds, t])
 
   return (
     <div style={screen}>
@@ -113,6 +119,8 @@ export function WorldMapView({ cityId }: { cityId: string }) {
       {city && <ResourceBar city={city} />}
       {selected && !worldView && city && <ProvincePanel city={city} province={selected} />}
       {selectedTarget && !worldView && city && (selectedTarget.kind === 'node' ? <NodePanel city={city} target={selectedTarget} /> : <CombatTargetPanel city={city} target={selectedTarget} />)}
+      {selectedNeighbor && !worldView && city && <NeighborPanel city={city} neighbor={selectedNeighbor} />}
+      {city && city.incoming.length > 0 && !worldView && <IncomingBanner city={city} />}
       <button onClick={() => setWorldView((v) => !v)} style={worldToggleBtn}>
         {worldView ? t('worldmap.viewRegion') : t('worldmap.viewWorld')}
       </button>
@@ -507,6 +515,89 @@ function CombatTargetPanel({ city, target }: { city: City; target: WorldTarget }
   )
 }
 
+// Painel de CIDADE VIZINHA (saque PvP): atacar para roubar o excedente. SEM forecast (névoa — você
+// não vê a defesa do alvo; só com batedor/espionagem no futuro).
+function NeighborPanel({ city, neighbor }: { city: City; neighbor: WorldCity }) {
+  const { t } = useTranslation()
+  const { raid } = useArmyActions(city.id)
+  const now = useNow()
+  const active = city.raids.find((r) => r.defender_city_id === neighbor.id && r.status !== 'done')
+  const [send, setSend] = useState<Record<string, number>>({})
+
+  function doRaid() {
+    const troops: Record<string, number> = {}
+    for (const [k, v] of Object.entries(send)) if (v > 0) troops[k] = v
+    if (Object.keys(troops).length === 0) return
+    raid.mutate({ target_city_id: neighbor.id, troops }, { onSuccess: () => setSend({}) })
+  }
+
+  const totalSelected = Object.values(send).reduce((a, b) => a + b, 0)
+  const marchLimit = queuesForEra(city.era)
+  const marchUsed = marchQueueUsed(city)
+  const marchFull = marchUsed >= marchLimit
+  const hasLoot = !!(active && (active.loot.matter || active.loot.energy || active.loot.knowledge))
+
+  return (
+    <div style={panel}>
+      <div style={{ fontWeight: 600 }}>{neighbor.name}</div>
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>@{neighbor.username}</div>
+
+      {active ? (
+        <div style={{ marginTop: 10, fontSize: 13 }}>
+          {active.status === 'returning' && active.attacker_won != null && (
+            <div style={{ color: active.attacker_won ? '#5ad17a' : '#e0884a', fontWeight: 600 }}>
+              {active.attacker_won ? t('map.victory') : t('map.defeat')}
+            </div>
+          )}
+          <div style={{ color: '#e0b04a' }}>
+            {active.status === 'outbound'
+              ? t('map.outbound', { time: formatDuration(secondsUntil(active.arrive_at, now)) })
+              : t('map.returning', { time: formatDuration(secondsUntil(active.return_at ?? active.arrive_at, now)) })}
+          </div>
+          {hasLoot && (
+            <div style={{ fontSize: 12, color: '#7fd99b', marginTop: 4 }}>
+              {t('node.loot')}: <CostLine amounts={active.loot} />
+            </div>
+          )}
+        </div>
+      ) : city.troops.length === 0 ? (
+        <p style={{ fontSize: 12, color: '#c2724a', marginTop: 10 }}>{t('map.noArmy')}</p>
+      ) : (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ fontSize: 12, color: '#9aa3b2', marginBottom: 4 }}>{t('map.selectTroops')}</div>
+          <TroopSelector troops={city.troops} send={send} setSend={setSend} />
+          <p style={{ fontSize: 11, color: '#6b7280', margin: '6px 0 0' }}>{t('raid.fogHint')}</p>
+          <div style={{ fontSize: 11, marginTop: 6, color: marchFull ? '#e0b04a' : '#6b7280' }}>
+            {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
+            {marchFull && ` · ${t('map.marchQueueFull')}`}
+          </div>
+          <button onClick={doRaid} disabled={raid.isPending || totalSelected === 0 || marchFull} style={battleBtn}>
+            {raid.isPending ? t('raid.raiding') : t('raid.raid')}
+          </button>
+          {raid.isError && <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>{errorMessage(raid.error)}</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Banner de ALERTA: ataques a caminho da SUA cidade (defesa ativa).
+function IncomingBanner({ city }: { city: City }) {
+  const { t } = useTranslation()
+  const now = useNow()
+  const next = [...city.incoming].sort((a, b) => new Date(a.arrive_at).getTime() - new Date(b.arrive_at).getTime())
+  return (
+    <div style={incomingBanner}>
+      <strong>⚠ {t('raid.incomingTitle', { count: city.incoming.length })}</strong>
+      {next.slice(0, 3).map((inc, i) => (
+        <span key={i} style={{ marginLeft: 10, fontSize: 12 }}>
+          @{inc.attacker_name} · {formatDuration(secondsUntil(inc.arrive_at, now))}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 // Cor por tier de previsão (melhor → pior).
 const TIER_COLOR: Record<string, string> = {
   certain_win: '#4ade80',
@@ -581,6 +672,23 @@ const input: CSSProperties = {
   border: '1px solid #39415a',
   background: '#11141c',
   color: '#fff',
+}
+
+const incomingBanner: CSSProperties = {
+  position: 'absolute',
+  top: 12,
+  left: '50%',
+  transform: 'translateX(-50%)',
+  padding: '8px 16px',
+  borderRadius: 8,
+  background: 'rgba(74,30,30,0.95)',
+  border: '1px solid #c2724a',
+  color: '#ffd9c2',
+  fontFamily: 'system-ui, sans-serif',
+  fontSize: 13,
+  pointerEvents: 'auto',
+  zIndex: 40,
+  whiteSpace: 'nowrap',
 }
 
 const maxBtn: CSSProperties = {
