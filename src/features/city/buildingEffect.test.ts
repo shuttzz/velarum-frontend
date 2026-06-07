@@ -8,6 +8,7 @@ const t = (k: string) =>
     'resources.energy': 'Energia',
     'units.lanceiro': 'Lanceiro',
     'units.arqueiro': 'Arqueiro',
+    'build.scoutSpeed': 'scout speed',
   }) as Record<string, string>)[k] ?? k
 
 const bld = (key: string, extra: Partial<CatalogBuilding> = {}): CatalogBuilding => ({
@@ -48,6 +49,7 @@ const catalog: Catalog = {
     bld('torre_do_vigia'),
     bld('muralha'),
     bld('canteiro_de_almas'),
+    bld('toca_dos_batedores'),
     bld('lar_do_cla'),
   ],
   units: [unit('lanceiro', 1), unit('arqueiro', 2)],
@@ -76,6 +78,12 @@ describe('buildingEffectAtLevel', () => {
   it('canteiro: unidades desbloqueadas até o nível', () => {
     expect(buildingEffectAtLevel('canteiro_de_almas', 1, catalog, t)).toBe('Lanceiro')
     expect(buildingEffectAtLevel('canteiro_de_almas', 2, catalog, t)).toBe('Lanceiro, Arqueiro')
+  })
+
+  it('toca dos batedores: bônus de velocidade (+5%/nível acima do 1)', () => {
+    expect(buildingEffectAtLevel('toca_dos_batedores', 1, catalog, t)).toBe('🔭 +0% scout speed')
+    expect(buildingEffectAtLevel('toca_dos_batedores', 2, catalog, t)).toBe('🔭 +5% scout speed')
+    expect(buildingEffectAtLevel('toca_dos_batedores', 3, catalog, t)).toBe('🔭 +10% scout speed')
   })
 
   it('sem efeito numérico (Lar) → null', () => {

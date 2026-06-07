@@ -33,7 +33,10 @@ export function buildingEffectAtLevel(key: string, level: number, catalog: Catal
       const units = catalog.units.filter((u) => u.min_barracks_level <= level).map((u) => t(`units.${u.key}`))
       return units.length ? units.join(', ') : '—'
     }
+    case 'toca_dos_batedores':
+      // Bônus de velocidade de marcha do batedor (espelha config.ScoutSpeedBonusPct: 0 no nv1, +5%/nível).
+      return `🔭 +${(level - 1) * 5}% ${t('build.scoutSpeed')}`
     default:
-      return null // Lar/Toca etc.: sem efeito numérico por nível → texto genérico.
+      return null // Lar etc.: sem efeito numérico por nível → texto genérico.
   }
 }

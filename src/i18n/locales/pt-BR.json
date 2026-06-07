@@ -60,7 +60,8 @@
     "queue": "Filas de obra: {{used}}/{{max}}",
     "queueFull": "fila cheia — aguarde uma obra terminar",
     "currentLevel": "Nível atual ({{level}})",
-    "nextLevelEffect": "Próximo nível ({{level}})"
+    "nextLevelEffect": "Próximo nível ({{level}})",
+    "scoutSpeed": "de veloc. dos batedores"
   },
   "buildingDesc": {
     "lar_do_cla": "Coração do clã: sustenta o seu povo e é a base de toda a aldeia.",
@@ -254,7 +255,7 @@
     "create": "Criar aliança",
     "name": "Nome",
     "tag": "Tag",
-    "createFor": "Criar ({{cost}} 💎)",
+    "createFor": "Criar ({{cost}} 🔮)",
     "browse": "Alianças",
     "none": "Nenhuma aliança ainda.",
     "join": "Entrar",

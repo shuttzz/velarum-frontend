@@ -1,12 +1,16 @@
 import { type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Account } from '../api/auth'
-import { useAuthActions } from '../queries/useAuth'
+import { useAuthActions, useMe } from '../queries/useAuth'
 import { LanguageSwitcher } from './LanguageSwitcher'
 
-// Controles de conta (idioma + sair), reusados no lobby e no HUD do jogo.
-export function AccountControls({ account, style }: { account?: Account; style?: CSSProperties }) {
+// Controles de conta (idioma + saldo de Crônicas + sair), reusados no lobby e no HUD do jogo.
+// O HUD do jogo (CityView/WorldMapView) NÃO passa `account` → buscamos via useMe() como fallback,
+// senão o saldo de Crônicas e o nome não apareceriam no jogo.
+export function AccountControls({ account: accountProp, style }: { account?: Account; style?: CSSProperties }) {
   const { t } = useTranslation()
+  const me = useMe()
+  const account = accountProp ?? me.data
   const { logout } = useAuthActions()
   return (
     <div style={{ ...row, ...style }}>

@@ -60,7 +60,8 @@
     "queue": "Build queues: {{used}}/{{max}}",
     "queueFull": "queues full — wait for a build to finish",
     "currentLevel": "Current level ({{level}})",
-    "nextLevelEffect": "Next level ({{level}})"
+    "nextLevelEffect": "Next level ({{level}})",
+    "scoutSpeed": "scout speed"
   },
   "buildingDesc": {
     "lar_do_cla": "Heart of the clan: sustains your people and is the foundation of the whole village.",
@@ -254,7 +255,7 @@
     "create": "Create alliance",
     "name": "Name",
     "tag": "Tag",
-    "createFor": "Create ({{cost}} 💎)",
+    "createFor": "Create ({{cost}} 🔮)",
     "browse": "Alliances",
     "none": "No alliances yet.",
     "join": "Join",
