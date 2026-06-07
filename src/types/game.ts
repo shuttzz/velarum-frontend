@@ -89,6 +89,12 @@ export type IncomingRaid = {
   arrive_at: string
 }
 
+// Alianças (SW3).
+export type Alliance = { id: string; name: string; tag: string; entry_mode: 'open' | 'approval'; member_cap: number; members: number }
+export type AllianceMember = { player_id: string; username: string; role: 'owner' | 'leader' | 'officer' | 'member'; joined_at: string }
+export type JoinRequest = { id: string; player_id: string; username: string; created_at: string }
+export type MyAlliance = { alliance: Alliance; my_role: 'owner' | 'leader' | 'officer' | 'member'; members: AllianceMember[]; requests: JoinRequest[] }
+
 // Espionagem (SW3): batedores em treino + missões de scout.
 export type ScoutQueued = { id: string; count: number; finish_at: string }
 export type ScoutIntel = {

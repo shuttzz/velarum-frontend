@@ -1,6 +1,6 @@
 import { api } from './client'
 
-export type Account = { id: string; username: string; email: string }
+export type Account = { id: string; username: string; email: string; premium: number }
 
 export const authApi = {
   me: () => api.get<Account>('/auth/me'),

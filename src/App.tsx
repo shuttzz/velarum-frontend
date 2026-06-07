@@ -5,6 +5,7 @@ import { CityView } from './features/city/CityView'
 import { WorldMapView } from './features/world/WorldMapView'
 import { BattleView } from './features/battle/BattleView'
 import { ReportsOverlay } from './features/reports/ReportsOverlay'
+import { AllianceOverlay } from './features/alliance/AllianceOverlay'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { AccountControls } from './components/AccountControls'
 import { useGameUIStore } from './stores/useGameUIStore'
@@ -70,6 +71,7 @@ function Game({ account }: { account: Account }) {
         {view === 'map' ? <WorldMapView cityId={cityId} /> : <CityView cityId={cityId} />}
         {battleId && <BattleView cityId={cityId} />}
         <ReportsOverlay cityId={cityId} />
+        <AllianceOverlay />
       </>
     )
   }
