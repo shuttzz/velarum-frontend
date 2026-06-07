@@ -64,12 +64,29 @@ function ReportsPanel({ reports, onClose }: { reports: Report[]; onClose: () => 
               <ScoutEntry key={r.id} r={r} />
             ) : r.type === 'incoming_scout' ? (
               <IncomingScoutEntry key={r.id} r={r} />
+            ) : r.type === 'ally_alert' ? (
+              <AllyAlertEntry key={r.id} r={r} />
             ) : (
               <BattleEntry key={r.id} r={r} />
             ),
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+// Aviso à aliança: um membro foi atacado (raid) ou espionado (scout) — fatia B das alianças.
+function AllyAlertEntry({ r }: { r: Report }) {
+  const { t } = useTranslation()
+  const c = r.payload as unknown as { ally_name: string; coord_x: number; coord_y: number; kind: string }
+  const scout = c.kind === 'scout'
+  return (
+    <div style={entry}>
+      <div style={{ fontWeight: 600, color: scout ? '#a06ad0' : '#e0884a' }}>
+        {scout ? '🔍' : '⚔'} {t(scout ? 'reports.allyScouted' : 'reports.allyRaided', { name: c.ally_name })}
+      </div>
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>{t('reports.allyAt', { x: c.coord_x, y: c.coord_y })}</div>
     </div>
   )
 }

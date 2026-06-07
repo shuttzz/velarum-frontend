@@ -11,12 +11,27 @@ export function AccountControls({ account, style }: { account?: Account; style?:
   return (
     <div style={{ ...row, ...style }}>
       {account && <span style={{ color: '#9aa3b2', fontSize: 13 }}>{t('auth.welcome', { name: account.username })}</span>}
+      {account && (
+        <span style={premiumChip} title={t('auth.chroniclesTip')}>
+          🔮 {t('auth.chronicles', { n: account.premium })}
+        </span>
+      )}
       <LanguageSwitcher />
       <button onClick={() => logout.mutate()} disabled={logout.isPending} style={btn}>
         {t('auth.logout')}
       </button>
     </div>
   )
+}
+
+const premiumChip: CSSProperties = {
+  fontSize: 13,
+  color: '#e9d27a',
+  padding: '4px 8px',
+  borderRadius: 6,
+  border: '1px solid #5a4f2a',
+  background: 'rgba(120,100,30,0.18)',
+  whiteSpace: 'nowrap',
 }
 
 const row: CSSProperties = {

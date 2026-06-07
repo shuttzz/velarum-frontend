@@ -23,7 +23,9 @@
     "logout": "Sair",
     "play": "Jogar",
     "playing": "Entrando…",
-    "welcome": "Olá, {{name}}"
+    "welcome": "Olá, {{name}}",
+    "chronicles": "{{n}} Crônicas",
+    "chroniclesTip": "Crônicas — moeda premium do jogo"
   },
   "hud": {
     "era": "Era {{n}}",
@@ -56,7 +58,9 @@
     "selectHint": "Selecione um edifício para ver os detalhes.",
     "produces": "+{{rate}}/h de {{res}}",
     "queue": "Filas de obra: {{used}}/{{max}}",
-    "queueFull": "fila cheia — aguarde uma obra terminar"
+    "queueFull": "fila cheia — aguarde uma obra terminar",
+    "currentLevel": "Nível atual ({{level}})",
+    "nextLevelEffect": "Próximo nível ({{level}})"
   },
   "buildingDesc": {
     "lar_do_cla": "Coração do clã: sustenta o seu povo e é a base de toda a aldeia.",
@@ -174,6 +178,7 @@
     "selectTroops": "Selecione as tropas para enviar",
     "max": "Máx",
     "noArmy": "Recrute tropas na cidade primeiro.",
+    "allyCity": "Cidade aliada — não dá para saquear nem espionar.",
     "outbound": "Marchando… chega em {{time}}",
     "returning": "Voltando… chega em {{time}}",
     "victory": "Vitória!",
@@ -219,7 +224,10 @@
     "none": "nenhuma",
     "reward": "Recompensa",
     "collected": "Coleta concluída",
-    "collectBounced": "Tropas voltaram sem coletar (nó ocupado ou esgotado)."
+    "collectBounced": "Tropas voltaram sem coletar (nó ocupado ou esgotado).",
+    "allyRaided": "Aliado sob ataque: {{name}}",
+    "allyScouted": "Aliado sendo espionado: {{name}}",
+    "allyAt": "em ({{x}},{{y}})"
   },
   "node": {
     "title": "Nó de {{resource}} · nível {{level}}",
@@ -242,7 +250,7 @@
   },
   "alliance": {
     "title": "Aliança",
-    "premium": "{{n}} de moeda premium",
+    "premium": "{{n}} Crônicas",
     "create": "Criar aliança",
     "name": "Nome",
     "tag": "Tag",
@@ -258,6 +266,8 @@
     "open": "Aberta",
     "approval": "Por aprovação",
     "kick": "Expulsar",
+    "transfer": "👑 Passar posse",
+    "transferConfirm": "Passar a propriedade da aliança para {{name}}? Você vira líder.",
     "leave": "Sair",
     "disband": "Dissolver",
     "role": { "owner": "Dono", "leader": "Líder", "officer": "Oficial", "member": "Membro" }
@@ -319,6 +329,8 @@
     "target_depleted": "Nó esgotado.",
     "target_city_not_found": "Cidade alvo não encontrada.",
     "cannot_raid_self": "Você não pode saquear a própria cidade.",
+    "cannot_raid_ally": "Você não pode saquear um aliado.",
+    "cannot_scout_ally": "Você não pode espionar um aliado.",
     "defender_shielded": "Alvo sob escudo de proteção (jogador novato).",
     "no_scout_house": "Construa a Toca dos Batedores primeiro.",
     "no_scouts": "Nenhum batedor disponível (treine na Toca dos Batedores).",

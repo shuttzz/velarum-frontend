@@ -1,12 +1,13 @@
 import { useMemo, useState, type CSSProperties, type Dispatch, type SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Amounts, City, Province, Troop, WorldCity, WorldTarget } from '../../types/game'
+import type { Amounts, City, Province, Raid, Troop, WorldCity, WorldTarget } from '../../types/game'
 import { useCity } from '../../queries/useCity'
 import { useProvinces } from '../../queries/useProvinces'
 import { useWorldCities } from '../../queries/useWorldCities'
 import { useWorldTargets } from '../../queries/useWorldTargets'
 import { useCatalog } from '../../queries/useCatalog'
 import { useArmyActions } from '../../queries/useGameMutations'
+import { useMyAlliance } from '../../queries/useAlliance'
 import { predictAutoResolve, type Prediction } from '../combat/predict'
 import { errorMessage } from '../../api/client'
 import { formatDuration, marchQueueUsed, queuesForEra } from '../city/catalog'
@@ -516,6 +517,8 @@ function NeighborPanel({ city, neighbor }: { city: City; neighbor: WorldCity }) 
   const now = useNow()
   const active = city.raids.find((r) => r.defender_city_id === neighbor.id && r.status !== 'done')
   const [send, setSend] = useState<Record<string, number>>({})
+  const myAlliance = useMyAlliance(true)
+  const isAlly = !!neighbor.alliance_id && neighbor.alliance_id === myAlliance.data?.alliance.id
 
   function doRaid() {
     const troops: Record<string, number> = {}
@@ -524,17 +527,53 @@ function NeighborPanel({ city, neighbor }: { city: City; neighbor: WorldCity }) 
     raid.mutate({ target_city_id: neighbor.id, troops }, { onSuccess: () => setSend({}) })
   }
 
+  return (
+    <div style={panel}>
+      <div style={{ fontWeight: 600 }}>
+        {neighbor.name}
+        {neighbor.alliance_tag && (
+          <span style={{ fontSize: 11, color: isAlly ? '#7fd99b' : '#9aa3b2', marginLeft: 6 }}>[{neighbor.alliance_tag}]</span>
+        )}
+      </div>
+      <div style={{ fontSize: 12, color: '#9aa3b2' }}>@{neighbor.username}</div>
+
+      {isAlly ? (
+        <p style={{ fontSize: 13, color: '#7fd99b', marginTop: 10 }}>🛡 {t('map.allyCity')}</p>
+      ) : (
+        <NeighborActions city={city} neighbor={neighbor} active={active} send={send} setSend={setSend} raid={raid} doRaid={doRaid} now={now} />
+      )}
+    </div>
+  )
+}
+
+// Ações contra um vizinho NÃO-aliado: espionar + saquear (extraído p/ o NeighborPanel ramificar aliado).
+function NeighborActions({
+  city,
+  neighbor,
+  active,
+  send,
+  setSend,
+  raid,
+  doRaid,
+  now,
+}: {
+  city: City
+  neighbor: WorldCity
+  active: Raid | undefined
+  send: Record<string, number>
+  setSend: Dispatch<SetStateAction<Record<string, number>>>
+  raid: ReturnType<typeof useArmyActions>['raid']
+  doRaid: () => void
+  now: number
+}) {
+  const { t } = useTranslation()
   const totalSelected = Object.values(send).reduce((a, b) => a + b, 0)
   const marchLimit = queuesForEra(city.era)
   const marchUsed = marchQueueUsed(city)
   const marchFull = marchUsed >= marchLimit
   const hasLoot = !!(active && (active.loot.matter || active.loot.energy || active.loot.knowledge))
-
   return (
-    <div style={panel}>
-      <div style={{ fontWeight: 600 }}>{neighbor.name}</div>
-      <div style={{ fontSize: 12, color: '#9aa3b2' }}>@{neighbor.username}</div>
-
+    <>
       <ScoutControl city={city} neighbor={neighbor} />
 
       {active ? (
@@ -576,7 +615,7 @@ function NeighborPanel({ city, neighbor }: { city: City; neighbor: WorldCity }) 
           {raid.isError && <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>{errorMessage(raid.error)}</p>}
         </div>
       )}
-    </div>
+    </>
   )
 }
 

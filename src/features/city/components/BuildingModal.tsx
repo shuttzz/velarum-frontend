@@ -15,6 +15,7 @@ import {
   queuesForEra,
 } from '../catalog'
 import { useNow, secondsUntil } from '../../../lib/useNow'
+import { buildingEffectAtLevel } from '../buildingEffect'
 import { unitColor } from '../buildingVisual'
 import { errorMessage } from '../../../api/client'
 import { BuildingInfo } from './BuildingInfo'
@@ -39,7 +40,7 @@ export function BuildingModal({ city }: { city: City }) {
       width={b.type === BARRACKS_KEY ? 520 : 360}
     >
       <div style={{ marginBottom: 10 }}>
-        <BuildingInfo buildingKey={b.type} />
+        <BuildingInfo buildingKey={b.type} currentLevel={b.level} />
       </div>
       <UpgradeSection city={city} b={b} />
       {b.type === BARRACKS_KEY && <RecruitSection city={city} barracksLevel={b.level} />}
@@ -60,6 +61,11 @@ function UpgradeSection({ city, b }: { city: City; b: Building }) {
   const cost = def && catalog ? costForLevel(def.base_cost, catalog.growth.cost, nextLevel) : null
   const time = def && catalog ? buildSecondsForLevel(def.base_time, catalog.growth.build_time, nextLevel) : null
   const affordable = cost ? canAfford(city.resources, cost) : false
+  // Efeito CONCRETO por nível: o que o nível atual dá e o que o próximo dará (números reais).
+  const effectNow = catalog ? buildingEffectAtLevel(b.type, b.level, catalog, t) : null
+  const effectNext = catalog ? buildingEffectAtLevel(b.type, nextLevel, catalog, t) : null
+  const upgradeGeneric = t(`buildingUpgrade.${b.type}`)
+  const hasGeneric = upgradeGeneric !== `buildingUpgrade.${b.type}`
   // Fila de obra cheia (construção + upgrade contam juntas) — desabilita iniciar novo upgrade.
   const queueFull = buildQueueUsed(city) >= queuesForEra(city.era)
 
@@ -84,6 +90,18 @@ function UpgradeSection({ city, b }: { city: City; b: Building }) {
             <div style={{ color: affordable ? '#5ad17a' : '#e0884a', fontSize: 13, marginTop: 2 }}>
               <CostLine amounts={cost} /> · ⏱ {formatDuration(time)} {affordable ? '· ✓' : `· ✗ ${t('build.cantAfford')}`}
             </div>
+            {effectNow && effectNext ? (
+              <div style={{ fontSize: 13, marginTop: 6, lineHeight: 1.5 }}>
+                <div style={{ color: '#9aa3b2' }}>
+                  {t('build.currentLevel', { level: b.level })}: <strong style={{ color: '#cdd4e0' }}>{effectNow}</strong>
+                </div>
+                <div style={{ color: '#9fd0a8' }}>
+                  ⬆ {t('build.nextLevelEffect', { level: nextLevel })}: <strong>{effectNext}</strong>
+                </div>
+              </div>
+            ) : hasGeneric ? (
+              <div style={{ fontSize: 13, marginTop: 6, color: '#9fd0a8' }}>⬆ {upgradeGeneric}</div>
+            ) : null}
             {queueFull && <div style={{ fontSize: 12, color: '#e0b04a', marginTop: 4 }}>🔒 {t('build.queueFull')}</div>}
             <button
               onClick={() => upgrade.mutate(b.id)}

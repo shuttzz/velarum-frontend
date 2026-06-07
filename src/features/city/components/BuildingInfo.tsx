@@ -4,7 +4,9 @@ import type { CatalogBuilding } from '../../../types/game'
 
 // Bloco de descrição de um edifício: historinha (lore) + o que faz (⚙) + produção (📈, quando
 // `def` é informado). Reutilizado no modal de construção e no modal do edifício construído.
-export function BuildingInfo({ buildingKey, def }: { buildingKey: string; def?: CatalogBuilding }) {
+// `currentLevel` informado = contexto de edifício CONSTRUÍDO → a linha genérica de upgrade é
+// omitida aqui, pois o UpgradeSection mostra o efeito CONCRETO (nível atual → próximo).
+export function BuildingInfo({ buildingKey, def, currentLevel }: { buildingKey: string; def?: CatalogBuilding; currentLevel?: number }) {
   const { t } = useTranslation()
   // t() devolve a própria chave quando não há tradução — não renderiza nesse caso (evita
   // mostrar "buildingLore.x" cru para edifícios sem texto cadastrado).
@@ -21,7 +23,7 @@ export function BuildingInfo({ buildingKey, def }: { buildingKey: string; def?: 
       {def?.produces && def.base_rate > 0 && (
         <p style={desc}>📈 {t('build.produces', { rate: def.base_rate, res: t(`resources.${def.produces}`) })}</p>
       )}
-      {upgradeText !== upgradeKey && <p style={upgrade}>⬆ {upgradeText}</p>}
+      {currentLevel === undefined && upgradeText !== upgradeKey && <p style={upgrade}>⬆ {upgradeText}</p>}
     </div>
   )
 }

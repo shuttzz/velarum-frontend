@@ -52,7 +52,7 @@ function Browse() {
   return (
     <div>
       <div style={{ fontSize: 13, color: '#9aa3b2', marginBottom: 8 }}>
-        💎 {t('alliance.premium', { n: premium })}
+        🔮 {t('alliance.premium', { n: premium })}
       </div>
       <div style={card}>
         <strong style={{ fontSize: 13 }}>{t('alliance.create')}</strong>
@@ -96,7 +96,7 @@ function Browse() {
 // Dentro da aliança: roster, papéis, pedidos (oficial+), modo de entrada, sair/dissolver.
 function Manage({ mine }: { mine: MyAlliance }) {
   const { t } = useTranslation()
-  const { decide, leave, kick, setEntryMode, setRole, disband } = useAllianceActions()
+  const { decide, leave, kick, setEntryMode, setRole, transfer, disband } = useAllianceActions()
   const myRank = rank(mine.my_role)
   const a = mine.alliance
   const canManage = myRank >= 1 // oficial+
@@ -169,6 +169,16 @@ function Manage({ mine }: { mine: MyAlliance }) {
                     {t('alliance.kick')}
                   </button>
                 )}
+                {isOwner && m.role !== 'owner' && (
+                  <button
+                    style={smallBtn}
+                    onClick={() => {
+                      if (window.confirm(t('alliance.transferConfirm', { name: m.username }))) transfer.mutate(m.player_id)
+                    }}
+                  >
+                    {t('alliance.transfer')}
+                  </button>
+                )}
               </span>
             </div>
           )
@@ -186,8 +196,8 @@ function Manage({ mine }: { mine: MyAlliance }) {
           </button>
         )}
       </div>
-      {(decide.isError || kick.isError || setRole.isError || setEntryMode.isError || leave.isError || disband.isError) && (
-        <p style={err}>{errorMessage(decide.error ?? kick.error ?? setRole.error ?? setEntryMode.error ?? leave.error ?? disband.error)}</p>
+      {(decide.isError || kick.isError || setRole.isError || setEntryMode.isError || leave.isError || transfer.isError || disband.isError) && (
+        <p style={err}>{errorMessage(decide.error ?? kick.error ?? setRole.error ?? setEntryMode.error ?? leave.error ?? transfer.error ?? disband.error)}</p>
       )}
     </div>
   )

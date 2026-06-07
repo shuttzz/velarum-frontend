@@ -237,6 +237,8 @@ export type WorldCity = {
   coord_x: number
   coord_y: number
   username: string
+  alliance_id: string // "" se o dono não está em aliança
+  alliance_tag: string // tag da aliança do dono (marca aliados no mapa)
 }
 
 export type Province = {

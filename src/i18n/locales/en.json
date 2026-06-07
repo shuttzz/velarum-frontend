@@ -23,7 +23,9 @@
     "logout": "Sign out",
     "play": "Play",
     "playing": "Entering…",
-    "welcome": "Hi, {{name}}"
+    "welcome": "Hi, {{name}}",
+    "chronicles": "{{n}} Chronicles",
+    "chroniclesTip": "Chronicles — the game's premium currency"
   },
   "hud": {
     "era": "Era {{n}}",
@@ -56,7 +58,9 @@
     "selectHint": "Select a building to see its details.",
     "produces": "+{{rate}}/h {{res}}",
     "queue": "Build queues: {{used}}/{{max}}",
-    "queueFull": "queues full — wait for a build to finish"
+    "queueFull": "queues full — wait for a build to finish",
+    "currentLevel": "Current level ({{level}})",
+    "nextLevelEffect": "Next level ({{level}})"
   },
   "buildingDesc": {
     "lar_do_cla": "Heart of the clan: sustains your people and is the foundation of the whole village.",
@@ -174,6 +178,7 @@
     "selectTroops": "Select troops to send",
     "max": "Max",
     "noArmy": "Recruit troops in the city first.",
+    "allyCity": "Allied city — can't raid or scout.",
     "outbound": "Marching… arrives in {{time}}",
     "returning": "Returning… arrives in {{time}}",
     "victory": "Victory!",
@@ -219,7 +224,10 @@
     "none": "none",
     "reward": "Reward",
     "collected": "Gathering complete",
-    "collectBounced": "Troops returned without gathering (node occupied or depleted)."
+    "collectBounced": "Troops returned without gathering (node occupied or depleted).",
+    "allyRaided": "Ally under attack: {{name}}",
+    "allyScouted": "Ally being scouted: {{name}}",
+    "allyAt": "at ({{x}},{{y}})"
   },
   "node": {
     "title": "{{resource}} node · level {{level}}",
@@ -242,7 +250,7 @@
   },
   "alliance": {
     "title": "Alliance",
-    "premium": "{{n}} premium",
+    "premium": "{{n}} Chronicles",
     "create": "Create alliance",
     "name": "Name",
     "tag": "Tag",
@@ -258,6 +266,8 @@
     "open": "Open",
     "approval": "Approval",
     "kick": "Kick",
+    "transfer": "👑 Transfer",
+    "transferConfirm": "Transfer alliance ownership to {{name}}? You become a leader.",
     "leave": "Leave",
     "disband": "Disband",
     "role": { "owner": "Owner", "leader": "Leader", "officer": "Officer", "member": "Member" }
@@ -319,6 +329,8 @@
     "target_depleted": "Node depleted.",
     "target_city_not_found": "Target city not found.",
     "cannot_raid_self": "You can't raid your own city.",
+    "cannot_raid_ally": "You can't raid an ally.",
+    "cannot_scout_ally": "You can't scout an ally.",
     "defender_shielded": "Target is under a protection shield (new player).",
     "no_scout_house": "Build the Scout Den first.",
     "no_scouts": "No scouts available (train them at the Scout Den).",

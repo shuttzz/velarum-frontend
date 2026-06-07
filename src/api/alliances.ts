@@ -11,5 +11,6 @@ export const alliancesApi = {
   kick: (playerId: string) => api.postVoid('/alliances/kick', { player_id: playerId }),
   setEntryMode: (mode: 'open' | 'approval') => api.postVoid('/alliances/entry-mode', { mode }),
   setRole: (playerId: string, role: string) => api.postVoid('/alliances/role', { player_id: playerId, role }),
+  transfer: (playerId: string) => api.postVoid('/alliances/transfer', { player_id: playerId }),
   disband: () => api.postVoid('/alliances/disband', {}),
 }

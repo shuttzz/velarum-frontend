@@ -32,6 +32,7 @@ export function useAllianceActions() {
     kick: useMutation({ mutationFn: (playerId: string) => alliancesApi.kick(playerId), onSuccess: invalidate }),
     setEntryMode: useMutation({ mutationFn: (mode: 'open' | 'approval') => alliancesApi.setEntryMode(mode), onSuccess: invalidate }),
     setRole: useMutation({ mutationFn: (p: { playerId: string; role: string }) => alliancesApi.setRole(p.playerId, p.role), onSuccess: invalidate }),
+    transfer: useMutation({ mutationFn: (playerId: string) => alliancesApi.transfer(playerId), onSuccess: invalidate }),
     disband: useMutation({ mutationFn: () => alliancesApi.disband(), onSuccess: invalidate }),
   }
 }
