@@ -129,7 +129,7 @@ export type City = {
   pending: PendingBuild[]
   troops: Troop[]
   recruits: RecruitQueued[]
-  army_cap: number
+  march_capacity: number // máx. de tropas por expedição (cresce por era; pesquisa no futuro)
   marches: March[]
   world_marches: WorldMarch[]
   raids: Raid[] // saques que VOCÊ enviou (SW3)

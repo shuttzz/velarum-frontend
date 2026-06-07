@@ -41,7 +41,7 @@ function Item({ label, v, cap, rate }: { label: string; v: number; cap: number; 
       <div style={{ fontSize: 12, color: '#9aa3b2' }}>{label}</div>
       <div style={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }}>{formatAmount(v)}</div>
       <div style={{ fontSize: 11, color: unprotected ? '#e0b04a' : '#6b7280' }} title={t('hud.protectedTip')}>
-        🛡 {formatAmount(cap)}
+        🔒 {formatAmount(cap)}
       </div>
       <div style={{ fontSize: 11, color: rate > 0 ? '#5ad17a' : '#6b7280' }}>+{rate}/h</div>
     </div>

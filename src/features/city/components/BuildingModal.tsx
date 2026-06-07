@@ -109,14 +109,15 @@ function RecruitSection({ city, barracksLevel }: { city: City; barracksLevel: nu
   const now = useNow()
 
   if (!catalog) return null
-  const used = city.troops.reduce((s, x) => s + x.count, 0) + city.recruits.reduce((s, x) => s + x.count, 0)
-  const capRemaining = Math.max(0, city.army_cap - used)
+  // SEM teto de posse: o exército cresce livre (limitado só por recurso + tempo). O limite militar
+  // é a CAPACIDADE DE MARCHA, aplicada ao ENVIAR tropas (não ao recrutar).
+  const total = city.troops.reduce((s, x) => s + x.count, 0) + city.recruits.reduce((s, x) => s + x.count, 0)
 
   return (
     <div style={{ borderTop: '1px solid #2a3142', paddingTop: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
         <strong>{t('military.title')}</strong>
-        <span style={{ fontSize: 12, color: '#9aa3b2' }}>{t('military.armyCap', { used, cap: city.army_cap })}</span>
+        <span style={{ fontSize: 12, color: '#9aa3b2' }}>{t('military.troopsTotal', { count: total })}</span>
       </div>
 
       {/* Em treinamento (progresso + cancelar) */}
@@ -139,8 +140,8 @@ function RecruitSection({ city, barracksLevel }: { city: City; barracksLevel: nu
       <div style={unitGrid}>
         {catalog.units.map((u) => {
           const locked = barracksLevel < u.min_barracks_level
-          // Máximo recrutável agora = limitado pelos recursos E pelo teto de exército.
-          const max = locked ? 0 : Math.min(maxAffordable(city.resources, u.cost), capRemaining)
+          // Máximo recrutável agora = limitado SÓ pelos recursos (sem teto de posse).
+          const max = locked ? 0 : maxAffordable(city.resources, u.cost)
           // 1 lane por TIPO: se já há um treinamento deste tipo, não dá pra enfileirar outro.
           const inTraining = city.recruits.some((r) => r.unit_type === u.key)
           return (

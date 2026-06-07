@@ -14,7 +14,6 @@ import { useNow, secondsUntil } from '../../lib/useNow'
 import { ResourceBar } from '../city/components/ResourceBar'
 import { AccountControls } from '../../components/AccountControls'
 import { ViewNav } from '../../components/ViewNav'
-import { useGameUIStore } from '../../stores/useGameUIStore'
 import { WorldMapCanvas } from '../../game/worldmap/WorldMapCanvas'
 import type { MapHex } from '../../game/worldmap/WorldMapRenderer'
 import { WORLD_REGIONS } from '../../game/worldmap/regions'
@@ -225,8 +224,7 @@ function TroopSelector({
 function ProvincePanel({ city, province }: { city: City; province: Province }) {
   const { t } = useTranslation()
   const { data: catalog } = useCatalog()
-  const { march, startBattle } = useArmyActions(city.id)
-  const openBattle = useGameUIStore((s) => s.openBattle)
+  const { march } = useArmyActions(city.id)
   const now = useNow()
   const active = city.marches.find((m) => m.province_id === province.id && m.status !== 'done')
   const [send, setSend] = useState<Record<string, number>>({})
@@ -255,22 +253,9 @@ function ProvincePanel({ city, province }: { city: City; province: Province }) {
     march.mutate({ province_id: province.id, troops }, { onSuccess: () => setSend({}) })
   }
 
-  function fight() {
-    const troops = selectedTroops()
-    if (Object.keys(troops).length === 0) return
-    startBattle.mutate(
-      { province_id: province.id, troops },
-      {
-        onSuccess: (view) => {
-          setSend({})
-          openBattle(view.id)
-        },
-      },
-    )
-  }
-
   const totalSelected = Object.values(send).reduce((a, b) => a + b, 0)
-  const busy = march.isPending || startBattle.isPending
+  const overCapacity = totalSelected > city.march_capacity
+  const busy = march.isPending
   const marchLimit = queuesForEra(city.era)
   const marchUsed = marchQueueUsed(city)
   const marchFull = marchUsed >= marchLimit
@@ -318,16 +303,16 @@ function ProvincePanel({ city, province }: { city: City; province: Province }) {
             {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
             {marchFull && ` · ${t('map.marchQueueFull')}`}
           </div>
-          <button onClick={attack} disabled={busy || totalSelected === 0 || marchFull} style={attackBtn}>
+          <div style={{ fontSize: 11, marginTop: 2, color: overCapacity ? '#e0884a' : '#6b7280' }}>
+            {t('map.marchCapacity', { used: totalSelected, max: city.march_capacity })}
+            {overCapacity && ` · ${t('map.marchCapacityFull')}`}
+          </div>
+          <button onClick={attack} disabled={busy || totalSelected === 0 || marchFull || overCapacity} style={attackBtn}>
             {march.isPending ? t('map.attacking') : t('map.send')}
           </button>
-          <button onClick={fight} disabled={busy || totalSelected === 0} style={battleBtn}>
-            {startBattle.isPending ? t('battle.starting') : t('battle.fight')}
-          </button>
-          <p style={{ fontSize: 11, color: '#6b7280', margin: '6px 0 0' }}>{t('battle.fightHint')}</p>
-          {(march.isError || startBattle.isError) && (
+          {march.isError && (
             <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>
-              {errorMessage(march.error ?? startBattle.error)}
+              {errorMessage(march.error)}
             </p>
           )}
         </div>
@@ -414,7 +399,11 @@ function NodePanel({ city, target }: { city: City; target: WorldTarget }) {
             {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
             {marchFull && ` · ${t('map.marchQueueFull')}`}
           </div>
-          <button onClick={doCollect} disabled={collect.isPending || totalSelected === 0 || marchFull} style={attackBtn}>
+          <div style={{ fontSize: 11, marginTop: 2, color: totalSelected > city.march_capacity ? '#e0884a' : '#6b7280' }}>
+            {t('map.marchCapacity', { used: totalSelected, max: city.march_capacity })}
+            {totalSelected > city.march_capacity && ` · ${t('map.marchCapacityFull')}`}
+          </div>
+          <button onClick={doCollect} disabled={collect.isPending || totalSelected === 0 || marchFull || totalSelected > city.march_capacity} style={attackBtn}>
             {collect.isPending ? t('node.sending') : t('node.collect')}
           </button>
           <p style={{ fontSize: 11, color: '#6b7280', margin: '6px 0 0' }}>{t('node.hint')}</p>
@@ -503,7 +492,11 @@ function CombatTargetPanel({ city, target }: { city: City; target: WorldTarget }
             {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
             {marchFull && ` · ${t('map.marchQueueFull')}`}
           </div>
-          <button onClick={doAttack} disabled={collect.isPending || totalSelected === 0 || marchFull} style={attackBtn}>
+          <div style={{ fontSize: 11, marginTop: 2, color: totalSelected > city.march_capacity ? '#e0884a' : '#6b7280' }}>
+            {t('map.marchCapacity', { used: totalSelected, max: city.march_capacity })}
+            {totalSelected > city.march_capacity && ` · ${t('map.marchCapacityFull')}`}
+          </div>
+          <button onClick={doAttack} disabled={collect.isPending || totalSelected === 0 || marchFull || totalSelected > city.march_capacity} style={attackBtn}>
             {collect.isPending ? t('map.attacking') : t('map.attack')}
           </button>
           {collect.isError && (
@@ -573,7 +566,11 @@ function NeighborPanel({ city, neighbor }: { city: City; neighbor: WorldCity }) 
             {t('map.marchQueue', { used: marchUsed, max: marchLimit })}
             {marchFull && ` · ${t('map.marchQueueFull')}`}
           </div>
-          <button onClick={doRaid} disabled={raid.isPending || totalSelected === 0 || marchFull} style={battleBtn}>
+          <div style={{ fontSize: 11, marginTop: 2, color: totalSelected > city.march_capacity ? '#e0884a' : '#6b7280' }}>
+            {t('map.marchCapacity', { used: totalSelected, max: city.march_capacity })}
+            {totalSelected > city.march_capacity && ` · ${t('map.marchCapacityFull')}`}
+          </div>
+          <button onClick={doRaid} disabled={raid.isPending || totalSelected === 0 || marchFull || totalSelected > city.march_capacity} style={battleBtn}>
             {raid.isPending ? t('raid.raiding') : t('raid.raid')}
           </button>
           {raid.isError && <p style={{ fontSize: 12, color: '#e0884a', margin: '6px 0 0' }}>{errorMessage(raid.error)}</p>}

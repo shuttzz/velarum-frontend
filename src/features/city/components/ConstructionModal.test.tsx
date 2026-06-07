@@ -48,7 +48,7 @@ const city: City = {
   pending: [],
   troops: [],
   recruits: [],
-  army_cap: 0,
+  march_capacity: 0,
   marches: [],
   world_marches: [],
   raids: [],

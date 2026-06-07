@@ -59,12 +59,15 @@
     "queueFull": "fila cheia — aguarde uma obra terminar"
   },
   "buildingDesc": {
-    "lar_do_cla": "Coração do clã. Cada nível libera novas construções e sustenta o seu povo.",
+    "lar_do_cla": "Coração do clã: sustenta o seu povo e é a base de toda a aldeia.",
     "viveiro_de_pedra": "Extrai Matéria, o recurso bruto para construir e recrutar.",
     "fogueira_comunal": "Produz Energia, que alimenta obras, rituais e o crescimento da aldeia.",
     "pedra_da_memoria": "Gera Conhecimento, acumulado para estruturas avançadas e (em breve) pesquisa.",
-    "celeiro_de_argila": "Define a parcela de recursos protegida contra saque (🛡). O que passar disso fica saqueável.",
-    "canteiro_de_almas": "Permite recrutar tropas e define o teto do seu exército. Subir de nível eleva o teto e libera novas unidades."
+    "celeiro_de_argila": "Define a parcela de recursos protegida contra saque (🔒). O que passar disso fica saqueável.",
+    "canteiro_de_almas": "Permite recrutar tropas e define quais unidades você pode treinar.",
+    "torre_do_vigia": "Reforça a defesa: soma poder de ataque à sua guarnição, ferindo mais quem ataca a cidade.",
+    "muralha": "Reforça a defesa: adiciona pontos de vida que absorvem o golpe do invasor e poupam suas tropas.",
+    "toca_dos_batedores": "Habilita a espionagem: treina e envia batedores (unidade não-combatente) em missões que revelam a inteligência do alvo — tropas, defesas e recursos."
   },
   "buildingLore": {
     "lar_do_cla": "Foi ao redor deste fogo que o primeiro clã se reuniu. Enquanto arder, o povo tem um lar.",
@@ -72,7 +75,20 @@
     "fogueira_comunal": "Uma chama que nunca se apaga — dela parte o calor que move a aldeia inteira.",
     "pedra_da_memoria": "Cada sulco guarda uma lembrança do clã. Tocá-la é ouvir a voz dos ancestrais.",
     "celeiro_de_argila": "Potes selados sob a terra: o que se guarda fundo, o invasor não leva.",
-    "canteiro_de_almas": "Aqui as almas dispostas a lutar são moldadas em guerreiros do clã."
+    "canteiro_de_almas": "Aqui as almas dispostas a lutar são moldadas em guerreiros do clã.",
+    "torre_do_vigia": "Do alto, olhos que nunca dormem ferem quem ousa cruzar os portões.",
+    "muralha": "Pedra sobre pedra, ergue-se a fronteira entre o clã e o caos lá fora.",
+    "toca_dos_batedores": "Tocas escondidas na orla, de onde olhos silenciosos partem para ler o inimigo."
+  },
+  "buildingUpgrade": {
+    "lar_do_cla": "Cada nível desbloqueia novas construções e estruturas mais avançadas.",
+    "viveiro_de_pedra": "Cada nível aumenta a produção de Matéria.",
+    "fogueira_comunal": "Cada nível aumenta a produção de Energia.",
+    "pedra_da_memoria": "Cada nível aumenta a produção de Conhecimento.",
+    "celeiro_de_argila": "Cada nível aumenta a parcela protegida (nv1 500, nv2 850, nv3 1300…).",
+    "canteiro_de_almas": "Cada nível desbloqueia novas unidades (Arqueiro no nível 2).",
+    "torre_do_vigia": "Cada nível aumenta o ataque defensivo (nível 1: +30; +20 por nível).",
+    "muralha": "Cada nível aumenta o HP defensivo (nível 1: +200; +150 por nível)."
   },
   "selected": {
     "levelPos": "nível {{level}} · posição ({{x}},{{y}})",
@@ -133,6 +149,8 @@
     "garrison": "Guarnição",
     "empty": "Sem tropas.",
     "armyCap": "Capacidade {{used}}/{{cap}}",
+    "troopsTotal": "Tropas: {{count}}",
+    "marchCapacity": "Marcha: até {{cap}}",
     "recruit": "Recrutar",
     "recruiting": "Recrutando…",
     "marching": "{{count}} em marcha",
@@ -162,7 +180,9 @@
     "defeat": "Derrota",
     "send": "Enviar exército",
     "marchQueue": "Filas de marcha: {{used}}/{{max}}",
-    "marchQueueFull": "fila cheia — aguarde uma marcha terminar"
+    "marchQueueFull": "fila cheia — aguarde uma marcha terminar",
+    "marchCapacity": "Capacidade de marcha: {{used}}/{{max}}",
+    "marchCapacityFull": "acima da capacidade de marcha"
   },
   "battle": {
     "title": "Batalha Tática",
@@ -287,6 +307,7 @@
   "errors": {
     "no_barracks": "Construa o Canteiro de Almas para recrutar.",
     "army_cap_exceeded": "Teto de exército excedido.",
+    "march_capacity_exceeded": "Capacidade de marcha excedida — envie menos tropas.",
     "unit_unknown": "Unidade desconhecida.",
     "bad_count": "Quantidade inválida.",
     "unit_locked": "Unidade bloqueada — suba o Canteiro de Almas.",

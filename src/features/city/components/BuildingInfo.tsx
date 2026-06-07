@@ -10,8 +10,10 @@ export function BuildingInfo({ buildingKey, def }: { buildingKey: string; def?: 
   // mostrar "buildingLore.x" cru para edifícios sem texto cadastrado).
   const loreKey = `buildingLore.${buildingKey}`
   const descKey = `buildingDesc.${buildingKey}`
+  const upgradeKey = `buildingUpgrade.${buildingKey}`
   const loreText = t(loreKey)
   const descText = t(descKey)
+  const upgradeText = t(upgradeKey)
   return (
     <div>
       {loreText !== loreKey && <p style={lore}>{loreText}</p>}
@@ -19,6 +21,7 @@ export function BuildingInfo({ buildingKey, def }: { buildingKey: string; def?: 
       {def?.produces && def.base_rate > 0 && (
         <p style={desc}>📈 {t('build.produces', { rate: def.base_rate, res: t(`resources.${def.produces}`) })}</p>
       )}
+      {upgradeText !== upgradeKey && <p style={upgrade}>⬆ {upgradeText}</p>}
     </div>
   )
 }
@@ -34,6 +37,13 @@ const lore: CSSProperties = {
 const desc: CSSProperties = {
   fontSize: 13,
   color: '#cdd4e0',
+  lineHeight: 1.4,
+  margin: '0 0 6px',
+}
+
+const upgrade: CSSProperties = {
+  fontSize: 13,
+  color: '#9fd0a8',
   lineHeight: 1.4,
   margin: '0 0 6px',
 }

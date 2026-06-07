@@ -59,12 +59,15 @@
     "queueFull": "queues full — wait for a build to finish"
   },
   "buildingDesc": {
-    "lar_do_cla": "Heart of the clan. Each level unlocks new buildings and sustains your people.",
+    "lar_do_cla": "Heart of the clan: sustains your people and is the foundation of the whole village.",
     "viveiro_de_pedra": "Extracts Matter, the raw resource for building and recruiting.",
     "fogueira_comunal": "Produces Energy, which powers works, rituals and the village's growth.",
     "pedra_da_memoria": "Generates Knowledge, saved for advanced structures and (soon) research.",
-    "celeiro_de_argila": "Sets the share of resources protected from raids (🛡). Anything above it can be looted.",
-    "canteiro_de_almas": "Lets you recruit troops and sets your army cap. Leveling it raises the cap and unlocks new units."
+    "celeiro_de_argila": "Sets the share of resources protected from raids (🔒). Anything above it can be looted.",
+    "canteiro_de_almas": "Lets you recruit troops and sets which units you can train.",
+    "torre_do_vigia": "Strengthens defense: adds attack power to your garrison, wounding those who assault the city.",
+    "muralha": "Strengthens defense: adds hit points that soak the raider's blow and spare your troops.",
+    "toca_dos_batedores": "Enables espionage: trains and sends scouts (a non-combat unit) on missions that reveal a target's intel — troops, defenses and resources."
   },
   "buildingLore": {
     "lar_do_cla": "It was around this fire that the first clan gathered. While it burns, the people have a home.",
@@ -72,7 +75,20 @@
     "fogueira_comunal": "A flame that never dies — from it springs the warmth that moves the whole village.",
     "pedra_da_memoria": "Every groove holds a memory of the clan. To touch it is to hear the ancestors.",
     "celeiro_de_argila": "Jars sealed beneath the earth: what is stored deep, the raider cannot take.",
-    "canteiro_de_almas": "Here the souls willing to fight are shaped into warriors of the clan."
+    "canteiro_de_almas": "Here the souls willing to fight are shaped into warriors of the clan.",
+    "torre_do_vigia": "From up high, eyes that never sleep wound any who dare cross the gates.",
+    "muralha": "Stone upon stone, the border between the clan and the chaos beyond.",
+    "toca_dos_batedores": "Hidden burrows at the treeline, from which silent eyes set out to read the enemy."
+  },
+  "buildingUpgrade": {
+    "lar_do_cla": "Each level unlocks new buildings and more advanced structures.",
+    "viveiro_de_pedra": "Each level increases Matter production.",
+    "fogueira_comunal": "Each level increases Energy production.",
+    "pedra_da_memoria": "Each level increases Knowledge production.",
+    "celeiro_de_argila": "Each level raises the protected share (lv1 500, lv2 850, lv3 1300…).",
+    "canteiro_de_almas": "Each level unlocks new units (Archer at level 2).",
+    "torre_do_vigia": "Each level increases defensive attack (level 1: +30; +20 per level).",
+    "muralha": "Each level increases defensive HP (level 1: +200; +150 per level)."
   },
   "selected": {
     "levelPos": "level {{level}} · position ({{x}},{{y}})",
@@ -133,6 +149,8 @@
     "garrison": "Garrison",
     "empty": "No troops.",
     "armyCap": "Capacity {{used}}/{{cap}}",
+    "troopsTotal": "Troops: {{count}}",
+    "marchCapacity": "March: up to {{cap}}",
     "recruit": "Recruit",
     "recruiting": "Recruiting…",
     "marching": "{{count}} marching",
@@ -162,7 +180,9 @@
     "defeat": "Defeat",
     "send": "Send army",
     "marchQueue": "March queues: {{used}}/{{max}}",
-    "marchQueueFull": "queues full — wait for a march to finish"
+    "marchQueueFull": "queues full — wait for a march to finish",
+    "marchCapacity": "March capacity: {{used}}/{{max}}",
+    "marchCapacityFull": "over march capacity"
   },
   "battle": {
     "title": "Tactical Battle",
@@ -287,6 +307,7 @@
   "errors": {
     "no_barracks": "Build the Soul Cradle to recruit.",
     "army_cap_exceeded": "Army cap exceeded.",
+    "march_capacity_exceeded": "March capacity exceeded — send fewer troops.",
     "unit_unknown": "Unknown unit.",
     "bad_count": "Invalid amount.",
     "unit_locked": "Unit locked — upgrade the Soul Cradle.",

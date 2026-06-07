@@ -65,7 +65,9 @@ export function ArmyModal({ city, onClose }: { city: City; onClose: () => void }
       <div style={section}>
         <div style={sectionHead}>
           <strong>{t('military.garrison')}</strong>
-          <span style={{ fontSize: 12, color: '#9aa3b2' }}>{t('military.armyCap', { used, cap: city.army_cap })}</span>
+          <span style={{ fontSize: 12, color: '#9aa3b2' }}>
+            {t('military.troopsTotal', { count: used })} · {t('military.marchCapacity', { cap: city.march_capacity })}
+          </span>
         </div>
         {city.troops.length === 0 ? (
           <p style={empty}>{t('military.empty')}</p>
